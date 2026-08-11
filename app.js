@@ -1,6 +1,33 @@
 // Demo Hub — hash-based router & views
 const app = document.getElementById("app");
 
+// Extract q_group_id from URL query string and attach to all GA4 events
+const _groupId = new URLSearchParams(window.location.search).get('q_group_id') || null;
+if (_groupId) {
+  // Persist across page navigations in this session
+  try { sessionStorage.setItem('q_group_id', _groupId); } catch(e) {}
+}
+const _effectiveGroupId = _groupId || (function(){ try { return sessionStorage.getItem('q_group_id'); } catch(e){ return null; } })();
+
+let _groupIdSent = false;
+function _sendGroupId() {
+  if (!_effectiveGroupId || typeof gtag !== 'function') return;
+  // gtag('set') attaches q_group_id to every subsequent event automatically
+  gtag('set', { 'q_group_id': _effectiveGroupId });
+  // Fire the dedicated event only once per session
+  if (!_groupIdSent) {
+    _groupIdSent = true;
+    gtag('event', 'group_identified', { 'q_group_id': _effectiveGroupId });
+  }
+}
+
+// Run immediately if gtag is ready, otherwise wait for it
+if (typeof gtag === 'function') {
+  _sendGroupId();
+} else {
+  window.addEventListener('load', _sendGroupId);
+}
+
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -240,21 +267,32 @@ function renderVideo(pid, vid) {
       page_path: location.pathname + location.search + '/#/product/' + pid + '/video/' + vid,
       page_location: location.href
     });
+    // Custom: video viewed
+    gtag('event', 'video_view', {
+      video_title: v.title,
+      video_id: v.id,
+      video_duration: v.duration || '',
+      product_name: p.name,
+      product_id: p.id,
+      video_index: idx + 1,
+      total_videos: p.videos.length
+    });
   }
   // Accepts both plain URL strings and { label, url } objects.
-  function renderLink(item, emoji) {
+  function renderLink(item, emoji, eventName) {
     const url = typeof item === "string" ? item : item.url;
     const label = typeof item === "string"
       ? decodeURIComponent(url.split("/").filter(Boolean).pop().replace(/-/g, " "))
       : item.label;
-    return `<li><a href="${esc(url)}" target="_blank" rel="noopener">${emoji} ${esc(label)}</a></li>`;
+    const gaAttr = `onclick="if(typeof gtag==='function')gtag('event','${eventName}',{link_label:'${label.replace(/'/g,"\\'")}',link_url:'${url.replace(/'/g,"\\'")}',video_title:'${v.title.replace(/'/g,"\\'")}',product_name:'${p.name.replace(/'/g,"\\'")}'})"`;
+    return `<li><a href="${esc(url)}" target="_blank" rel="noopener" ${gaAttr}>${emoji} ${esc(label)}</a></li>`;
   }
-  const docs = v.docs.map((d) => renderLink(d, "📄")).join("");
-  const links = v.links.map((l) => renderLink(l, "🔗")).join("");
+  const docs = v.docs.map((d) => renderLink(d, "📄", "doc_click")).join("");
+  const links = v.links.map((l) => renderLink(l, "🔗", "link_click")).join("");
   const playlist = p.videos
     .map(
       (item, i) => `
-      <li class="pl-item ${item.id === v.id ? "active" : ""}" data-vid="${item.id}" onclick="location.hash='#/product/${p.id}/video/${item.id}'">
+      <li class="pl-item ${item.id === v.id ? "active" : ""}" data-vid="${item.id}" onclick="if(typeof gtag==='function'&&'${item.id}'!=='${v.id}')gtag('event','playlist_click',{video_title:'${item.title.replace(/'/g,"\\'")}',video_id:'${item.id}',product_name:'${p.name.replace(/'/g,"\\'")}',from_video:'${v.title.replace(/'/g,"\\'")}'}); location.hash='#/product/${p.id}/video/${item.id}'">
         <span class="pl-index">${i + 1}</span>
         <img class="pl-thumb" src="${thumbUrl(item)}" alt="" onerror="this.classList.add('noimg')" />
         <span class="pl-meta">
