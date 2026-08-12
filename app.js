@@ -37,7 +37,6 @@ function esc(s) {
 function parseYouTube(input) {
   if (!input) return { videoId: null, playlistId: null };
   const raw = String(input).trim();
-  // Bare 11-char video id (no slashes / query)
   if (/^[\w-]{11}$/.test(raw)) return { videoId: raw, playlistId: null };
   let videoId = null,
     playlistId = null;
@@ -57,9 +56,6 @@ function parseYouTube(input) {
   return { videoId: videoId || null, playlistId: playlistId || null };
 }
 
-// Build a privacy-friendly embed URL that supports single videos AND (unlisted) playlists.
-// Pass { jsapi: true } to enable the IFrame API (needed for auto-advance).
-// Pass { widgetReferrer: location.href } to tell YouTube Analytics which page the embed is on.
 function embedUrl(video, opts = {}) {
   const parsed = parseYouTube(video.youtubeId);
   const playlistId = video.playlistId || parsed.playlistId;
@@ -68,20 +64,13 @@ function embedUrl(video, opts = {}) {
     base.enablejsapi = "1";
     base.origin = location.origin;
   }
-  // Never autoplay — user must click play for YouTube to count the view.
   base.autoplay = "0";
-  // widget_referrer tells YouTube Analytics the URL of the page hosting the embed,
-  // so each product/video page appears as a distinct referrer in YouTube Studio.
   base.widget_referrer = opts.widgetReferrer || location.href;
   const params = new URLSearchParams(base);
   let path;
   if (parsed.videoId) {
     path = parsed.videoId;
-    // Do NOT add list= here — it causes YouTube to handle playlist navigation internally,
-    // which prevents the ENDED event from firing for our auto-advance logic.
-    // We manage playlist navigation ourselves via setupAutoAdvance.
   } else if (playlistId && !parsed.videoId) {
-    // Playlist-only (no specific video): use the playlist embed endpoint.
     return `https://www.youtube.com/embed/videoseries?${params.toString()}&list=${encodeURIComponent(playlistId)}`;
   } else {
     path = "";
@@ -89,7 +78,6 @@ function embedUrl(video, opts = {}) {
   return `https://www.youtube.com/embed/${path}?${params.toString()}`;
 }
 
-// Auto-advance: load YT IFrame API once, attach player after iframe loads.
 let _ytReady = false;
 let _ytReadyCbs = [];
 function onYouTubeIframeAPIReady() {
@@ -109,8 +97,8 @@ function whenYTReady(fn) {
 
 let _currentPlayer = null;
 
-function setupAutoAdvance(nextHash) {
-  // Destroy previous player instance cleanly.
+// CHANGED: Now accepts videoObj and productObj to pass to GA4
+function setupAutoAdvance(videoObj, productObj, nextHash) {
   if (_currentPlayer) {
     try { _currentPlayer.destroy(); } catch(e) {}
     _currentPlayer = null;
@@ -118,13 +106,27 @@ function setupAutoAdvance(nextHash) {
 
   whenYTReady(() => {
     const iframe = document.getElementById("yt-player");
-    if (!iframe) return; // user navigated away
+    if (!iframe) return; 
+    
+    let videoStarted = false; // Prevents multiple start events if user pauses/plays
+
     _currentPlayer = new YT.Player(iframe, {
       events: {
-        onReady: (_e) => {
-          // Autoplay is disabled — user must click play for YouTube to count the view.
-        },
+        onReady: (_e) => {},
         onStateChange: (e) => {
+          // NEW: Track video_start when state changes to PLAYING (1)
+          if (e.data === YT.PlayerState.PLAYING && !videoStarted) {
+            videoStarted = true;
+            if (typeof gtag === 'function') {
+              gtag('event', 'video_start', {
+                video_title: videoObj.title,
+                video_id: videoObj.id,
+                product_name: productObj.name,
+                q_group_id: _effectiveGroupId || ''
+              });
+            }
+          }
+          // Auto-advance
           if (e.data === YT.PlayerState.ENDED && nextHash) {
             location.hash = nextHash;
           }
@@ -142,7 +144,7 @@ function thumbUrl(video) {
 }
 
 function render() {
-  const hash = location.hash.slice(1); // e.g. /product/crm/video/crm-1
+  const hash = location.hash.slice(1);
   const parts = hash.split("/").filter(Boolean);
   const isHome = parts.length === 0 || parts[0] !== "product";
   document.querySelector(".navbar").classList.toggle("is-home", isHome);
@@ -205,10 +207,10 @@ function renderHome() {
         </div>
         <p class="footer-desc">Your one-stop destination for BrowserStack product walkthroughs, onboarding videos, and documentation.</p>
         <div class="footer-links">
-          <a href="https://www.browserstack.com/docs" target="_blank" rel="noopener">Documentation</a>
-          <a href="https://www.browserstack.com/contact" target="_blank" rel="noopener">Support</a>
-          <a href="https://www.browserstack.com/blog" target="_blank" rel="noopener">Blog</a>
-          <a href="https://www.browserstack.com/pricing" target="_blank" rel="noopener">Pricing</a>
+          <a href="https://www.browserstack.com/docs" target="_blank"  rel="noopener">Documentation</a>
+          <a href="https://www.browserstack.com/contact" target="_blank"  rel="noopener">Support</a>
+          <a href="https://www.browserstack.com/blog" target="_blank"  rel="noopener">Blog</a>
+          <a href="https://www.browserstack.com/pricing" target="_blank"  rel="noopener">Pricing</a>
         </div>
         <p class="footer-copy">&copy; ${new Date().getFullYear()} BrowserStack. All rights reserved.</p>
       </div>
@@ -261,13 +263,13 @@ function renderVideo(pid, vid) {
   const v = idx >= 0 ? p.videos[idx] : null;
   if (!v) return renderHome();
   document.title = v.title + ' – BrowserStack Demo Hub';
+  
   if (typeof gtag === 'function') {
     gtag('event', 'page_view', {
       page_title: document.title,
       page_path: location.pathname + location.search + '/#/product/' + pid + '/video/' + vid,
       page_location: location.href
     });
-    // Custom: video viewed
     gtag('event', 'video_view', {
       video_title: v.title,
       video_id: v.id,
@@ -278,21 +280,28 @@ function renderVideo(pid, vid) {
       total_videos: p.videos.length
     });
   }
-  // Accepts both plain URL strings and { label, url } objects.
+  
   function renderLink(item, emoji, eventName) {
     const url = typeof item === "string" ? item : item.url;
     const label = typeof item === "string"
       ? decodeURIComponent(url.split("/").filter(Boolean).pop().replace(/-/g, " "))
       : item.label;
-    const gaAttr = `onclick="if(typeof gtag==='function')gtag('event','${eventName}',{link_label:'${label.replace(/'/g,"\\'")}',link_url:'${url.replace(/'/g,"\\'")}',video_title:'${v.title.replace(/'/g,"\\'")}',product_name:'${p.name.replace(/'/g,"\\'")}'})"`;
+    
+    // CHANGED: Explicitly injecting q_group_id into link clicks
+    const gidStr = _effectiveGroupId ? _effectiveGroupId.replace(/'/g,"\\'") : '';
+    const gaAttr = `onclick="if(typeof gtag==='function')gtag('event','${eventName}',{link_label:'${label.replace(/'/g,"\\'")}',link_url:'${url.replace(/'/g,"\\'")}',video_title:'${v.title.replace(/'/g,"\\'")}',product_name:'${p.name.replace(/'/g,"\\'")}',q_group_id:'${gidStr}'})"`;
     return `<li><a href="${esc(url)}" target="_blank" rel="noopener" ${gaAttr}>${emoji} ${esc(label)}</a></li>`;
   }
+  
   const docs = v.docs.map((d) => renderLink(d, "📄", "doc_click")).join("");
   const links = v.links.map((l) => renderLink(l, "🔗", "link_click")).join("");
+  
+  // CHANGED: Explicitly injecting q_group_id into playlist clicks
+  const playlistGid = _effectiveGroupId ? _effectiveGroupId.replace(/'/g,"\\'") : '';
   const playlist = p.videos
     .map(
       (item, i) => `
-      <li class="pl-item ${item.id === v.id ? "active" : ""}" data-vid="${item.id}" onclick="if(typeof gtag==='function'&&'${item.id}'!=='${v.id}')gtag('event','playlist_click',{video_title:'${item.title.replace(/'/g,"\\'")}',video_id:'${item.id}',product_name:'${p.name.replace(/'/g,"\\'")}',from_video:'${v.title.replace(/'/g,"\\'")}'}); location.hash='#/product/${p.id}/video/${item.id}'">
+      <li class="pl-item ${item.id === v.id ? "active" : ""}" data-vid="${item.id}" onclick="if(typeof gtag==='function'&&'${item.id}'!=='${v.id}')gtag('event','playlist_click',{video_title:'${item.title.replace(/'/g,"\\'")}',video_id:'${item.id}',product_name:'${p.name.replace(/'/g,"\\'")}',from_video:'${v.title.replace(/'/g,"\\'")}',q_group_id:'${playlistGid}'}); location.hash='#/product/${p.id}/video/${item.id}'">
         <span class="pl-index">${i + 1}</span>
         <img class="pl-thumb" src="${thumbUrl(item)}" alt="" onerror="this.classList.add('noimg')" />
         <span class="pl-meta">
@@ -305,6 +314,7 @@ function renderVideo(pid, vid) {
       </li>`
     )
     .join("");
+    
   app.innerHTML = `
     <div class="crumbs fade">
       <button class="back-btn" onclick="location.hash='#/product/${p.id}'">&#8592; Back</button>
@@ -337,10 +347,12 @@ function renderVideo(pid, vid) {
         </div>
       </div>
     </div>`;
-  // Auto-advance to the next video when this one ends (no autoplay — user must click play).
+    
   const next = p.videos[idx + 1];
-  setupAutoAdvance(next ? `#/product/${p.id}/video/${next.id}` : null);
-  // Keep the active playlist item in view.
+  
+  // CHANGED: Passing `v` and `p` to setupAutoAdvance so we can send video context to GA4
+  setupAutoAdvance(v, p, next ? `#/product/${p.id}/video/${next.id}` : null);
+  
   const active = document.querySelector(".pl-item.active");
   if (active) active.scrollIntoView({ block: "nearest" });
 }
@@ -358,17 +370,19 @@ function updateToggleIcon() {
   btn.querySelector(".toggle-icon").textContent = isDark ? "☀️" : "🌙";
   btn.title = isDark ? "Switch to light mode" : "Switch to dark mode";
 }
-document.getElementById("darkToggle").addEventListener("click", () => {
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  if (isDark) {
-    document.documentElement.removeAttribute("data-theme");
-    localStorage.setItem("theme", "light");
-  } else {
-    document.documentElement.setAttribute("data-theme", "dark");
-    localStorage.setItem("theme", "dark");
-  }
-  updateToggleIcon();
-});
+if (document.getElementById("darkToggle")) {
+  document.getElementById("darkToggle").addEventListener("click", () => {
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    if (isDark) {
+      document.documentElement.removeAttribute("data-theme");
+      localStorage.setItem("theme", "light");
+    } else {
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("theme", "dark");
+    }
+    updateToggleIcon();
+  });
+}
 initDarkMode();
 
 window.addEventListener("hashchange", render);
