@@ -8,6 +8,17 @@
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
 
+    try {
+    var params = new URLSearchParams(window.location.search);
+    var groupId = params.get('q_group_id') || sessionStorage.getItem('q_group_id');
+    
+    // 3. If an ID is found, pin it to all future events BEFORE configuring GA4
+    if (groupId) {
+      sessionStorage.setItem('q_group_id', groupId);
+      gtag('set', { 'q_group_id': groupId });
+    }
+  } catch(e) {}
+
     gtag('config', 'G-CZKRW5KJRS', { send_page_view: false });
   </script>
   <meta charset="UTF-8" />
