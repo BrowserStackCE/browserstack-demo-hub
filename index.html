@@ -5,19 +5,19 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZKRW5KJRS"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     try {
-    var params = new URLSearchParams(window.location.search);
-    var groupId = params.get('q_group_id') || sessionStorage.getItem('q_group_id');
-    
-    // 3. If an ID is found, pin it to all future events BEFORE configuring GA4
-    if (groupId) {
-      sessionStorage.setItem('q_group_id', groupId);
-      gtag('set', { 'q_group_id': groupId });
-    }
-  } catch(e) {}
+      var params = new URLSearchParams(window.location.search);
+      var groupId = params.get('q_group_id') || sessionStorage.getItem('q_group_id');
+
+      // CHANGED: Ensure groupId is not just an empty string
+      if (groupId && groupId.trim() !== '') {
+        sessionStorage.setItem('q_group_id', groupId.trim());
+        gtag('set', { 'q_group_id': groupId.trim() });
+      }
+    } catch (e) { }
 
     gtag('config', 'G-CZKRW5KJRS', { send_page_view: false });
   </script>

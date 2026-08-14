@@ -3,11 +3,17 @@ const app = document.getElementById("app");
 
 // Extract q_group_id from URL query string and attach to all GA4 events
 const _groupId = new URLSearchParams(window.location.search).get('q_group_id') || null;
-if (_groupId) {
+if (_groupId && _groupId.trim() !== '') {
   // Persist across page navigations in this session
-  try { sessionStorage.setItem('q_group_id', _groupId); } catch(e) {}
+  try { sessionStorage.setItem('q_group_id', _groupId.trim()); } catch(e) {}
 }
-const _effectiveGroupId = _groupId || (function(){ try { return sessionStorage.getItem('q_group_id'); } catch(e){ return null; } })();
+
+const _effectiveGroupId = (_groupId && _groupId.trim() !== '') ? _groupId.trim() : (function(){ 
+  try { 
+    const stored = sessionStorage.getItem('q_group_id');
+    return (stored && stored.trim() !== '') ? stored.trim() : null;
+  } catch(e){ return null; } 
+})();
 
 let _groupIdSent = false;
 function _sendGroupId() {
@@ -122,7 +128,8 @@ function setupAutoAdvance(videoObj, productObj, nextHash) {
                 video_title: videoObj.title,
                 video_id: videoObj.id,
                 product_name: productObj.name,
-                q_group_id: _effectiveGroupId || ''
+                // CHANGED: Pass undefined instead of empty string so GA4 logs (not set) correctly
+                q_group_id: _effectiveGroupId || undefined
               });
             }
           }
@@ -287,21 +294,22 @@ function renderVideo(pid, vid) {
       ? decodeURIComponent(url.split("/").filter(Boolean).pop().replace(/-/g, " "))
       : item.label;
     
-    // CHANGED: Explicitly injecting q_group_id into link clicks
-    const gidStr = _effectiveGroupId ? _effectiveGroupId.replace(/'/g,"\\'") : '';
-    const gaAttr = `onclick="if(typeof gtag==='function')gtag('event','${eventName}',{link_label:'${label.replace(/'/g,"\\'")}',link_url:'${url.replace(/'/g,"\\'")}',video_title:'${v.title.replace(/'/g,"\\'")}',product_name:'${p.name.replace(/'/g,"\\'")}',q_group_id:'${gidStr}'})"`;
+    // CHANGED: Only append the q_group_id string to the event if we actually have an ID
+    const gidParam = _effectiveGroupId ? `,q_group_id:'${_effectiveGroupId.replace(/'/g,"\\'")}'` : '';
+    const gaAttr = `onclick="if(typeof gtag==='function')gtag('event','${eventName}',{link_label:'${label.replace(/'/g,"\\'")}',link_url:'${url.replace(/'/g,"\\'")}',video_title:'${v.title.replace(/'/g,"\\'")}',product_name:'${p.name.replace(/'/g,"\\'")}'${gidParam}})"`;
+    
     return `<li><a href="${esc(url)}" target="_blank" rel="noopener" ${gaAttr}>${emoji} ${esc(label)}</a></li>`;
   }
   
   const docs = v.docs.map((d) => renderLink(d, "📄", "doc_click")).join("");
   const links = v.links.map((l) => renderLink(l, "🔗", "link_click")).join("");
   
-  // CHANGED: Explicitly injecting q_group_id into playlist clicks
-  const playlistGid = _effectiveGroupId ? _effectiveGroupId.replace(/'/g,"\\'") : '';
+  // CHANGED: Only append the q_group_id string to the playlist event if we actually have an ID
+  const playlistGidParam = _effectiveGroupId ? `,q_group_id:'${_effectiveGroupId.replace(/'/g,"\\'")}'` : '';
   const playlist = p.videos
     .map(
       (item, i) => `
-      <li class="pl-item ${item.id === v.id ? "active" : ""}" data-vid="${item.id}" onclick="if(typeof gtag==='function'&&'${item.id}'!=='${v.id}')gtag('event','playlist_click',{video_title:'${item.title.replace(/'/g,"\\'")}',video_id:'${item.id}',product_name:'${p.name.replace(/'/g,"\\'")}',from_video:'${v.title.replace(/'/g,"\\'")}',q_group_id:'${playlistGid}'}); location.hash='#/product/${p.id}/video/${item.id}'">
+      <li class="pl-item ${item.id === v.id ? "active" : ""}" data-vid="${item.id}" onclick="if(typeof gtag==='function'&&'${item.id}'!=='${v.id}')gtag('event','playlist_click',{video_title:'${item.title.replace(/'/g,"\\'")}',video_id:'${item.id}',product_name:'${p.name.replace(/'/g,"\\'")}',from_video:'${v.title.replace(/'/g,"\\'")}'${playlistGidParam}}); location.hash='#/product/${p.id}/video/${item.id}'">
         <span class="pl-index">${i + 1}</span>
         <img class="pl-thumb" src="${thumbUrl(item)}" alt="" onerror="this.classList.add('noimg')" />
         <span class="pl-meta">
