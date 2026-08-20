@@ -26,7 +26,7 @@ const PRODUCTS = [
       },
       {
         id: "live-2", title: "BrowserStack Live - Bug Reporting", youtubeId: "https://youtu.be/iTaCDsgbSAs", duration: "3:08",
-        description: "Discover how to capture and report bugs directly to your project management tools while testing.",
+        description: "Discover how to capture and report bugs directly to your project management tools while testing. Integrations include JIRA, Azure, Trello, Github, Slack.",
         docs: [{label:"Log Bugs", url:"https://www.browserstack.com/docs/live/logging"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
