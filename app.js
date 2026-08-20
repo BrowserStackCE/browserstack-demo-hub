@@ -434,7 +434,7 @@ function renderSearchResults(query) {
           <p>${esc(v.description).slice(0, 90)}${v.description.length > 90 ? "…" : ""}</p>
         </div>
       </div>`).join("")
-    : `<div class="search-empty">No videos found for "<strong>${esc(query)}</strong>"</div>`;
+    : buildNoResults(query);
 
   app.innerHTML = `
     <div class="search-header fade">
@@ -443,10 +443,92 @@ function renderSearchResults(query) {
     <div class="grid fade">${cards}</div>`;
 }
 
+/**
+ * Seeded shuffle — deterministic for a given seed so the same seed always
+ * produces the same order, but different seeds give different orders.
+ * Uses a simple mulberry32 PRNG.
+ */
+function seededShuffle(arr, seed) {
+  const a = [...arr];
+  let s = seed >>> 0;
+  for (let i = a.length - 1; i > 0; i--) {
+    s ^= s << 13; s ^= s >> 17; s ^= s << 5;
+    const j = (s >>> 0) % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Build the "no results" panel with related-term suggestions and time-dynamic popular videos.
+ * Popular videos rotate every 6 hours — different each session window, deterministic within it.
+ */
+function buildNoResults(query) {
+  const qt = tokenise(query);
+
+  // ── Related-term suggestions ──────────────────────────────────────────────
+  const suggestions = new Set();
+  qt.forEach(t => (SYNONYMS[t] || []).forEach(s => suggestions.add(s)));
+  Object.keys(SYNONYMS).forEach(key => {
+    if (qt.some(t => key.startsWith(t) || t.startsWith(key))) suggestions.add(key);
+  });
+  qt.forEach(t => suggestions.delete(t));
+
+  const suggestionHtml = suggestions.size
+    ? `<div class="no-results-suggestions">
+        <p class="no-results-label">💡 Try searching for:</p>
+        <div class="no-results-chips">
+          ${[...suggestions].slice(0, 8).map(s =>
+            `<button class="suggestion-chip" onclick="document.getElementById('globalSearch').value='${esc(s)}';document.getElementById('globalSearch').dispatchEvent(new Event('input'))">${esc(s)}</button>`
+          ).join("")}
+        </div>
+      </div>`
+    : "";
+
+  // ── Time-dynamic popular videos ───────────────────────────────────────────
+  // Seed changes every 6 hours → 4 different rotations per day
+  const seed = Math.floor(Date.now() / (1000 * 60 * 60 * 6));
+  const all = allVideos();
+  // Ensure one video per product for variety, then fill from the rest
+  const byProduct = {};
+  all.forEach(e => { if (!byProduct[e.product.id]) byProduct[e.product.id] = e; });
+  const candidates = seededShuffle(Object.values(byProduct), seed);
+  const popular = candidates.slice(0, 4);
+
+  const popularHtml = `
+    <div class="no-results-popular">
+      <p class="no-results-label">🔥 Popular right now:</p>
+      <div class="no-results-popular-grid">
+        ${popular.map(({ product: p, video: v }) => `
+          <div class="no-results-popular-item" onclick="location.hash='#/product/${p.id}/video/${v.id}'">
+            <div class="nrp-thumb-wrap">
+              <img src="${thumbUrl(v)}" alt="${esc(v.title)}" onerror="this.style.display='none'" />
+              <div class="nrp-play">▶</div>
+            </div>
+            <div class="nrp-meta">
+              <span class="nrp-product">${esc(p.name)}</span>
+              <span class="nrp-title">${esc(v.title)}</span>
+              ${v.duration ? `<span class="nrp-dur">${esc(v.duration)}</span>` : ""}
+            </div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+
+  return `<div class="search-empty">
+    <div class="no-results-icon">🔍</div>
+    <h3 class="no-results-heading">No results for "<strong>${esc(query)}</strong>"</h3>
+    <p class="no-results-sub">Double-check your spelling, or try one of the suggestions below.</p>
+    ${suggestionHtml}
+    ${popularHtml}
+  </div>`;
+}
+
 // Wire up global search input
 document.addEventListener("DOMContentLoaded", () => {
   const searchEl = document.getElementById("globalSearch");
   if (!searchEl) return;
+
+  // ── Debounced input handler ────────────────────────────────────────────────
   let debounceTimer;
   searchEl.addEventListener("input", () => {
     clearTimeout(debounceTimer);
@@ -459,8 +541,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }, 220);
   });
+
   searchEl.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { searchEl.value = ""; render(); }
+  });
+
+  // ── "/" shortcut — focus search from anywhere ──────────────────────────────
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "/" && document.activeElement !== searchEl &&
+        !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      searchEl.focus();
+      searchEl.select();
+    }
   });
 });
 
