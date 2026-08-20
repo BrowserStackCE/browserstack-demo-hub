@@ -198,58 +198,210 @@ function tokenise(str) {
 }
 
 /**
+ * Synonym / concept map.
+ * Each key is a query term a user might type; the value is an array of
+ * additional tokens injected into the search so they score against the
+ * video corpus even when the exact word isn't in the title.
+ *
+ * Rules:
+ *  - Keys are lowercase, no punctuation (same form tokenise() produces).
+ *  - Values are real words that appear in titles / descriptions / doc labels.
+ *  - Keep entries specific enough not to cause false positives.
+ */
+const SYNONYMS = {
+  // Bug / issue tracking integrations
+  "jira":        ["bug", "reporting", "log", "issue"],
+  "azure":       ["bug", "reporting", "devops"],
+  "trello":      ["bug", "reporting"],
+  "github":      ["bug", "reporting"],
+  "slack":       ["bug", "reporting", "notification"],
+  "bug":         ["reporting", "log"],
+  "issue":       ["reporting", "bug", "log"],
+  "ticket":      ["reporting", "bug"],
+  "defect":      ["reporting", "bug"],
+
+  // Payments
+  "payment":     ["pay", "apple", "google", "checkout"],
+  "pay":         ["apple", "google", "payment"],
+  "applepay":    ["apple", "pay", "ios"],
+  "googlepay":   ["google", "pay", "android"],
+  "checkout":    ["payment", "pay"],
+
+  // Auth / security
+  "biometric":   ["face", "touch", "authentication", "fingerprint"],
+  "faceid":      ["biometric", "authentication", "face"],
+  "touchid":     ["biometric", "authentication", "touch"],
+  "fingerprint": ["biometric", "authentication"],
+  "otp":         ["sim", "sms", "message", "verification"],
+  "sms":         ["sim", "otp", "message"],
+  "2fa":         ["otp", "sim", "authentication"],
+  "mfa":         ["otp", "authentication"],
+
+  // Network / performance
+  "throttle":    ["throttling", "network", "speed", "3g"],
+  "throttling":  ["network", "speed", "simulation"],
+  "slow":        ["throttling", "network", "3g"],
+  "offline":     ["throttling", "network"],
+  "proxy":       ["proxies", "internal", "network"],
+  "vpn":         ["local", "internal", "network"],
+  "latency":     ["throttling", "network"],
+  "bandwidth":   ["throttling", "network"],
+
+  // Location / geo
+  "geo":         ["geolocation", "location", "gps", "ip"],
+  "gps":         ["geolocation", "location"],
+  "location":    ["geolocation", "gps", "timezone", "ip"],
+  "timezone":    ["time", "zone", "location", "region"],
+  "region":      ["timezone", "location", "geolocation"],
+  "country":     ["geolocation", "location", "ip"],
+
+  // Accessibility
+  "a11y":        ["accessibility", "screen", "reader", "wcag"],
+  "wcag":        ["accessibility"],
+  "screenreader":["accessibility", "screen", "reader"],
+  "aria":        ["accessibility"],
+
+  // Media / injection
+  "camera":      ["image", "injection", "qr", "barcode"],
+  "photo":       ["image", "injection"],
+  "scan":        ["qr", "barcode", "scanning", "image"],
+  "qr":          ["barcode", "scanning", "image", "injection"],
+  "barcode":     ["qr", "scanning", "image", "injection"],
+  "audio":       ["injection", "voice", "microphone", "sound"],
+  "voice":       ["audio", "injection", "microphone"],
+  "microphone":  ["audio", "injection"],
+
+  // File operations
+  "upload":      ["file", "injection", "media"],
+  "download":    ["file", "media"],
+  "file":        ["upload", "download", "injection"],
+
+  // Testing concepts
+  "responsive":  ["resolution", "resolutions", "screen"],
+  "resolution":  ["responsive", "screen"],
+  "cross":       ["browser", "device", "multi"],
+  "parallel":    ["multi", "device", "simultaneous"],
+  "local":       ["internal", "network", "staging", "localhost"],
+  "staging":     ["local", "internal", "network"],
+  "internal":    ["local", "network", "staging"],
+  "debug":       ["network", "monitoring", "devtools", "console"],
+  "devtools":    ["debug", "network", "monitoring"],
+  "console":     ["debug", "devtools", "network"],
+  "performance": ["cpu", "memory", "battery", "profiling"],
+  "cpu":         ["performance", "profiling"],
+  "memory":      ["performance", "profiling"],
+  "battery":     ["performance", "profiling"],
+
+  // Integrations / CI
+  "ci":          ["integration", "gradle", "studio", "pipeline"],
+  "cd":          ["integration", "pipeline"],
+  "gradle":      ["android", "integration", "build"],
+  "xcode":       ["ios", "integration"],
+  "studio":      ["android", "integration"],
+
+  // Misc
+  "bookmark":    ["url", "save", "quick"],
+  "record":      ["session", "video", "recording"],
+  "recording":   ["record", "session"],
+  "screenshot":  ["capture", "bug", "reporting"],
+  "whitelisting":["ip", "whitelist", "security"],
+  "whitelist":   ["ip", "whitelisting", "security"],
+  "locale":      ["language", "localization", "region"],
+  "language":    ["locale", "localization"],
+  "localization":["locale", "language", "region"],
+  "i18n":        ["localization", "locale", "language"],
+  "l10n":        ["localization", "locale", "language"],
+};
+
+/**
+ * Expand a list of query tokens with synonyms.
+ * Returns a new array with originals + any synonym expansions, deduplicated.
+ * Synonym expansions are weighted lower (they don't replace the original token
+ * in scoring — they are added as extra tokens that can boost the score but
+ * whose absence does NOT disqualify a result).
+ */
+function expandTokens(tokens) {
+  const expanded = new Set(tokens);
+  tokens.forEach(t => {
+    (SYNONYMS[t] || []).forEach(s => expanded.add(s));
+  });
+  return [...expanded];
+}
+
+/**
+ * Build the full-text corpus for a video, including doc labels and link labels.
+ */
+function videoCorpus(v, p) {
+  const docText  = (v.docs  || []).map(d => typeof d === "string" ? d : d.label || "").join(" ");
+  const linkText = (v.links || []).map(l => typeof l === "string" ? l : l.label || "").join(" ");
+  return [v.title, v.description || "", p.name, p.tagline || "", docText, linkText].join(" ");
+}
+
+/**
  * Score a single video entry against an array of query tokens.
  * Returns a numeric score (higher = better match); 0 means no match.
  *
- * Scoring weights:
- *   10 – query token is an exact word in the title
- *    6 – query token is a prefix of a title word
- *    4 – query token is an exact word in the description / product name
- *    2 – query token is a prefix of a description / product-name word
- *    1 – query token appears as a substring anywhere in the full text
+ * Scoring weights (per original query token):
+ *   10 – exact word match in title
+ *    6 – prefix match in title
+ *    4 – exact word match in description / product name / doc labels
+ *    2 – prefix match in description / product name / doc labels
+ *    1 – substring fallback anywhere in corpus
  *
- * All query tokens must contribute at least 1 point for the result to
- * be included (AND semantics — every term must match somewhere).
+ * Synonym-expanded tokens contribute half the above weights and are
+ * treated as OPTIONAL (their absence does not disqualify the result).
+ *
+ * AND semantics: every ORIGINAL query token must contribute ≥ 1 point.
  */
 function scoreVideo(entry, queryTokens) {
   const { product: p, video: v } = entry;
-  const titleTokens   = tokenise(v.title);
-  const descTokens    = tokenise(v.description);
-  const productTokens = tokenise(p.name);
-  const fullText      = (v.title + " " + (v.description || "") + " " + p.name).toLowerCase();
+  const corpus       = videoCorpus(v, p).toLowerCase();
+  const titleTokens  = tokenise(v.title);
+  const bodyTokens   = tokenise(corpus);
+  const expandedTokens = expandTokens(queryTokens);
+  const synonymOnly    = expandedTokens.filter(t => !queryTokens.includes(t));
 
   let totalScore = 0;
 
+  // Score original (required) tokens — AND logic
   for (const qt of queryTokens) {
     let tokenScore = 0;
 
-    // Exact word match in title (highest weight)
     if (titleTokens.includes(qt)) {
       tokenScore += 10;
     } else if (titleTokens.some(t => t.startsWith(qt))) {
-      // Prefix match in title
       tokenScore += 6;
     }
 
-    // Exact word match in description or product name
-    if (descTokens.includes(qt) || productTokens.includes(qt)) {
+    if (bodyTokens.includes(qt)) {
       tokenScore += 4;
-    } else if (
-      descTokens.some(t => t.startsWith(qt)) ||
-      productTokens.some(t => t.startsWith(qt))
-    ) {
+    } else if (bodyTokens.some(t => t.startsWith(qt))) {
       tokenScore += 2;
     }
 
-    // Substring fallback (catches mid-word matches)
-    if (tokenScore === 0 && fullText.includes(qt)) {
+    if (tokenScore === 0 && corpus.includes(qt)) {
       tokenScore += 1;
     }
 
-    // If this token contributes nothing, the whole entry is excluded (AND logic)
+    // Original token matched nothing → exclude this result
     if (tokenScore === 0) return 0;
 
     totalScore += tokenScore;
+  }
+
+  // Score synonym-expanded tokens — OPTIONAL boost only
+  for (const st of synonymOnly) {
+    if (titleTokens.includes(st)) {
+      totalScore += 5;
+    } else if (titleTokens.some(t => t.startsWith(st))) {
+      totalScore += 3;
+    } else if (bodyTokens.includes(st)) {
+      totalScore += 2;
+    } else if (bodyTokens.some(t => t.startsWith(st))) {
+      totalScore += 1;
+    } else if (corpus.includes(st)) {
+      totalScore += 0.5;
+    }
   }
 
   return totalScore;
@@ -384,7 +536,7 @@ function renderDashboard(pid) {
   }
   const cards = p.videos.map(
     (v) => `
-    <div class="glass card vthumb" onclick="location.hash='#/product/${p.id}/video/${v.id}'">
+    <div class="glass card vthumb" data-vid="${v.id}" onclick="location.hash='#/product/${p.id}/video/${v.id}'">
       <div class="thumbwrap">
         <img class="thumbimg" src="${thumbUrl(v)}" alt="${esc(v.title)}" onerror="this.classList.add('noimg')" />
         <div class="play"><span>&#9654;</span></div>
@@ -416,15 +568,34 @@ function renderDashboard(pid) {
     </div>
     <div class="grid fade" id="dashGrid">${cards}</div>`;
 
-  // Wire up dashboard search filter
+  // Wire up dashboard search filter (tokenised + synonym scoring, same engine as global search)
   const dashSearch = document.getElementById("dashSearch");
   if (dashSearch) {
     dashSearch.addEventListener("input", () => {
-      const q = dashSearch.value.trim().toLowerCase();
+      const q = dashSearch.value.trim();
+      const queryTokens = tokenise(q);
       document.querySelectorAll("#dashGrid .card").forEach((card) => {
-        const title = card.querySelector("h3")?.textContent.toLowerCase() || "";
-        const desc = card.querySelector("p")?.textContent.toLowerCase() || "";
-        card.style.display = (!q || title.includes(q) || desc.includes(q)) ? "" : "none";
+        if (!q || queryTokens.length === 0) {
+          card.style.display = "";
+          return;
+        }
+        // Resolve the video object from the card's data-vid attribute
+        const vid = card.getAttribute("data-vid") ||
+          card.getAttribute("onclick")?.match(/video\/([^']+)/)?.[1];
+        const videoObj = vid ? p.videos.find(x => x.id === vid) : null;
+        if (videoObj) {
+          const score = scoreVideo({ product: p, video: videoObj }, queryTokens);
+          card.style.display = score > 0 ? "" : "none";
+        } else {
+          // Fallback: plain text match on rendered content
+          const text = (card.querySelector("h3")?.textContent || "") + " " +
+                       (card.querySelector("p")?.textContent || "");
+          const corpus = text.toLowerCase();
+          const expanded = expandTokens(queryTokens);
+          const allMatch = queryTokens.every(t => corpus.includes(t));
+          const anyExpanded = expanded.some(t => corpus.includes(t));
+          card.style.display = (allMatch || anyExpanded) ? "" : "none";
+        }
       });
     });
   }
