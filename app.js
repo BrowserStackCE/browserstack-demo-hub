@@ -764,7 +764,13 @@ function renderVideo(pid, vid) {
           <iframe id="yt-player" src="${embedUrl(v, { jsapi: true, widgetReferrer: location.href })}" title="${esc(v.title)}" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="origin"></iframe>
         </div>
         <div class="glass panel desc-panel">
-          <h2>${esc(v.title)}</h2>
+          <div class="desc-title-row">
+            <h2>${esc(v.title)}</h2>
+            <button class="copy-link-btn" title="Copy link to this video" onclick="copyVideoLink()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span>Copy link</span>
+            </button>
+          </div>
           <p>${esc(v.description)}</p>
         </div>
       </div>
@@ -789,6 +795,38 @@ function renderVideo(pid, vid) {
   
   const active = document.querySelector(".pl-item.active");
   if (active) active.scrollIntoView({ block: "nearest" });
+}
+
+// ── Copy video link + toast ────────────────────────────────────────────────
+function copyVideoLink() {
+  const url = location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(showCopyToast).catch(() => fallbackCopy(url));
+  } else {
+    fallbackCopy(url);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.cssText = "position:fixed;opacity:0;pointer-events:none";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); showCopyToast(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function showCopyToast() {
+  let toast = document.getElementById("copy-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "copy-toast";
+    toast.className = "copy-toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = "✓ Link copied to clipboard";
+  toast.classList.add("copy-toast--show");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove("copy-toast--show"), 2400);
 }
 
 // Dark mode toggle — persists in localStorage
