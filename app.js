@@ -159,6 +159,9 @@ function render() {
   const parts = hash.split("/").filter(Boolean);
   const isHome = parts.length === 0 || parts[0] !== "product";
   document.querySelector(".navbar").classList.toggle("is-home", isHome);
+  // Clear search input on navigation
+  const searchEl = document.getElementById("globalSearch");
+  if (searchEl) searchEl.value = "";
   if (parts[0] === "product" && parts[2] === "video") {
     renderVideo(parts[1], parts[3]);
   } else if (parts[0] === "product") {
@@ -168,6 +171,146 @@ function render() {
   }
   window.scrollTo(0, 0);
 }
+
+// ── Search & Filter ────────────────────────────────────────────────────────
+
+// Build a flat list of all videos across all products for global search
+function allVideos() {
+  const results = [];
+  PRODUCTS.forEach((p) => {
+    (p.videos || []).forEach((v) => {
+      results.push({ product: p, video: v });
+    });
+  });
+  return results;
+}
+
+/**
+ * Tokenise a string into lowercase words, stripping punctuation.
+ * e.g. "App Live — iOS/Android" → ["app", "live", "ios", "android"]
+ */
+function tokenise(str) {
+  return String(str || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/**
+ * Score a single video entry against an array of query tokens.
+ * Returns a numeric score (higher = better match); 0 means no match.
+ *
+ * Scoring weights:
+ *   10 – query token is an exact word in the title
+ *    6 – query token is a prefix of a title word
+ *    4 – query token is an exact word in the description / product name
+ *    2 – query token is a prefix of a description / product-name word
+ *    1 – query token appears as a substring anywhere in the full text
+ *
+ * All query tokens must contribute at least 1 point for the result to
+ * be included (AND semantics — every term must match somewhere).
+ */
+function scoreVideo(entry, queryTokens) {
+  const { product: p, video: v } = entry;
+  const titleTokens   = tokenise(v.title);
+  const descTokens    = tokenise(v.description);
+  const productTokens = tokenise(p.name);
+  const fullText      = (v.title + " " + (v.description || "") + " " + p.name).toLowerCase();
+
+  let totalScore = 0;
+
+  for (const qt of queryTokens) {
+    let tokenScore = 0;
+
+    // Exact word match in title (highest weight)
+    if (titleTokens.includes(qt)) {
+      tokenScore += 10;
+    } else if (titleTokens.some(t => t.startsWith(qt))) {
+      // Prefix match in title
+      tokenScore += 6;
+    }
+
+    // Exact word match in description or product name
+    if (descTokens.includes(qt) || productTokens.includes(qt)) {
+      tokenScore += 4;
+    } else if (
+      descTokens.some(t => t.startsWith(qt)) ||
+      productTokens.some(t => t.startsWith(qt))
+    ) {
+      tokenScore += 2;
+    }
+
+    // Substring fallback (catches mid-word matches)
+    if (tokenScore === 0 && fullText.includes(qt)) {
+      tokenScore += 1;
+    }
+
+    // If this token contributes nothing, the whole entry is excluded (AND logic)
+    if (tokenScore === 0) return 0;
+
+    totalScore += tokenScore;
+  }
+
+  return totalScore;
+}
+
+function renderSearchResults(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return;
+
+  const queryTokens = tokenise(q);
+  if (!queryTokens.length) return;
+
+  const scored = allVideos()
+    .map(entry => ({ entry, score: scoreVideo(entry, queryTokens) }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const matches = scored.map(({ entry }) => entry);
+  const cards = matches.length
+    ? matches.map(({ product: p, video: v }) => `
+      <div class="glass card vthumb" onclick="location.hash='#/product/${p.id}/video/${v.id}'">
+        <div class="thumbwrap">
+          <img class="thumbimg" src="${thumbUrl(v)}" alt="${esc(v.title)}" onerror="this.classList.add('noimg')" />
+          <div class="play"><span>&#9654;</span></div>
+          ${v.duration ? `<span class="dur">${esc(v.duration)}</span>` : ""}
+        </div>
+        <div class="meta">
+          <span class="search-product-tag">${esc(p.name)}</span>
+          <h3>${esc(v.title)}</h3>
+          <p>${esc(v.description).slice(0, 90)}${v.description.length > 90 ? "…" : ""}</p>
+        </div>
+      </div>`).join("")
+    : `<div class="search-empty">No videos found for "<strong>${esc(query)}</strong>"</div>`;
+
+  app.innerHTML = `
+    <div class="search-header fade">
+      <h2 class="section-label">Search results for "<strong>${esc(query)}</strong>" &mdash; ${matches.length} found</h2>
+    </div>
+    <div class="grid fade">${cards}</div>`;
+}
+
+// Wire up global search input
+document.addEventListener("DOMContentLoaded", () => {
+  const searchEl = document.getElementById("globalSearch");
+  if (!searchEl) return;
+  let debounceTimer;
+  searchEl.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    const q = searchEl.value.trim();
+    debounceTimer = setTimeout(() => {
+      if (q.length >= 2) {
+        renderSearchResults(q);
+      } else if (q.length === 0) {
+        render(); // restore current view
+      }
+    }, 220);
+  });
+  searchEl.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { searchEl.value = ""; render(); }
+  });
+});
 
 function renderHome() {
   document.title = 'BrowserStack Demo Hub';
@@ -258,14 +401,33 @@ function renderDashboard(pid) {
       <button class="back-btn" onclick="location.hash='#/'">&#8592; Back</button>
       <a onclick="location.hash='#/'">BrowserStack Demo Hub</a><span>›</span><span>${esc(p.name)}</span>
     </div>
-    <header class="hero fade" style="text-align:left;margin-bottom:32px;">
+    <header class="hero fade" style="text-align:left;margin-bottom:24px;">
       <h1 style="font-size:2.4rem;display:flex;align-items:center;gap:12px;">
         ${p.iconSvg ? `<img src="${p.iconSvg}" alt="" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" />` : `<span>${p.icon}</span>`}
         ${esc(p.name)}
       </h1>
       <h5>${esc(p.tagline)}</h5>
     </header>
-    <div class="grid fade">${cards}</div>`;
+    <div class="dash-search-row fade">
+      <div class="dash-search-wrap">
+        <span class="dash-search-icon">🔍</span>
+        <input type="search" id="dashSearch" class="dash-search" placeholder="Filter videos…" autocomplete="off" />
+      </div>
+    </div>
+    <div class="grid fade" id="dashGrid">${cards}</div>`;
+
+  // Wire up dashboard search filter
+  const dashSearch = document.getElementById("dashSearch");
+  if (dashSearch) {
+    dashSearch.addEventListener("input", () => {
+      const q = dashSearch.value.trim().toLowerCase();
+      document.querySelectorAll("#dashGrid .card").forEach((card) => {
+        const title = card.querySelector("h3")?.textContent.toLowerCase() || "";
+        const desc = card.querySelector("p")?.textContent.toLowerCase() || "";
+        card.style.display = (!q || title.includes(q) || desc.includes(q)) ? "" : "none";
+      });
+    });
+  }
 }
 
 function renderVideo(pid, vid) {

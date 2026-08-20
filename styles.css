@@ -74,6 +74,49 @@ body,
 /* ============================================================
    Premium 3D Dark Toggle Animation
    ============================================================ */
+/* Navbar layout with search */
+.navbar { gap: 12px; }
+.nav-search-wrap {
+  flex: 1; max-width: 320px; position: relative; display: flex; align-items: center;
+}
+.nav-search {
+  width: 100%; padding: 8px 14px 8px 36px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--bg-alt); color: var(--ink);
+  font-size: 0.9rem; font-family: inherit; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.nav-search:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(44,116,246,0.1); background: var(--bg); }
+.nav-search::placeholder { color: var(--muted); }
+.nav-search-icon { position: absolute; left: 11px; font-size: 14px; pointer-events: none; }
+[data-theme="dark"] .nav-search { background: #1e2535; border-color: var(--border); color: var(--ink); }
+[data-theme="dark"] .nav-search:focus { background: #252d3d; }
+
+/* Dashboard inline search */
+.dash-search-row { margin-bottom: 20px; }
+.dash-search-wrap { position: relative; display: inline-flex; align-items: center; width: 100%; max-width: 400px; }
+.dash-search {
+  width: 100%; padding: 10px 14px 10px 38px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--bg-alt); color: var(--ink);
+  font-size: 0.95rem; font-family: inherit; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dash-search:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(44,116,246,0.1); }
+.dash-search::placeholder { color: var(--muted); }
+.dash-search-icon { position: absolute; left: 12px; font-size: 15px; pointer-events: none; }
+[data-theme="dark"] .dash-search { background: #1e2535; border-color: var(--border); color: var(--ink); }
+
+/* Search results */
+.search-header { margin-bottom: 20px; }
+.search-product-tag {
+  display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--orange); background: rgba(44,116,246,0.1);
+  padding: 3px 8px; border-radius: 6px; margin-bottom: 6px;
+}
+.search-empty {
+  grid-column: 1/-1; text-align: center; padding: 48px 24px;
+  color: var(--muted); font-size: 1rem;
+}
+
 .nav-right { display: flex; align-items: center; gap: 12px; }
 
 .dark-toggle {
