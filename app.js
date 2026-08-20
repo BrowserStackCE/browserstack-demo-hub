@@ -1,19 +1,27 @@
 // Demo Hub — hash-based router & views
 const app = document.getElementById("app");
 
-// Extract q_group_id from URL query string and attach to all GA4 events
-const _groupId = new URLSearchParams(window.location.search).get('q_group_id') || null;
-if (_groupId && _groupId.trim() !== '') {
-  // Persist across page navigations in this session
-  try { sessionStorage.setItem('q_group_id', _groupId.trim()); } catch(e) {}
-}
+// Define our default fallback for direct sales shares
+const DEFAULT_GID = 'independent_visit';
 
-const _effectiveGroupId = (_groupId && _groupId.trim() !== '') ? _groupId.trim() : (function(){ 
+// Extract q_group_id from URL query string or session storage, fallback to default
+let _groupId = new URLSearchParams(window.location.search).get('q_group_id');
+
+if (_groupId && _groupId.trim() !== '') {
+  _groupId = _groupId.trim();
+} else {
   try { 
     const stored = sessionStorage.getItem('q_group_id');
-    return (stored && stored.trim() !== '') ? stored.trim() : null;
-  } catch(e){ return null; } 
-})();
+    _groupId = (stored && stored.trim() !== '') ? stored.trim() : DEFAULT_GID; 
+  } catch(e) { 
+    _groupId = DEFAULT_GID; 
+  }
+}
+
+// Persist across page navigations in this session
+try { sessionStorage.setItem('q_group_id', _groupId); } catch(e) {}
+
+const _effectiveGroupId = _groupId;
 
 let _groupIdSent = false;
 function _sendGroupId() {
@@ -103,7 +111,6 @@ function whenYTReady(fn) {
 
 let _currentPlayer = null;
 
-// CHANGED: Now accepts videoObj and productObj to pass to GA4
 function setupAutoAdvance(videoObj, productObj, nextHash) {
   if (_currentPlayer) {
     try { _currentPlayer.destroy(); } catch(e) {}
@@ -114,13 +121,12 @@ function setupAutoAdvance(videoObj, productObj, nextHash) {
     const iframe = document.getElementById("yt-player");
     if (!iframe) return; 
     
-    let videoStarted = false; // Prevents multiple start events if user pauses/plays
+    let videoStarted = false;
 
     _currentPlayer = new YT.Player(iframe, {
       events: {
         onReady: (_e) => {},
         onStateChange: (e) => {
-          // NEW: Track video_start when state changes to PLAYING (1)
           if (e.data === YT.PlayerState.PLAYING && !videoStarted) {
             videoStarted = true;
             if (typeof gtag === 'function') {
@@ -128,12 +134,10 @@ function setupAutoAdvance(videoObj, productObj, nextHash) {
                 video_title: videoObj.title,
                 video_id: videoObj.id,
                 product_name: productObj.name,
-                // CHANGED: Pass undefined instead of empty string so GA4 logs (not set) correctly
-                q_group_id: _effectiveGroupId || undefined
+                q_group_id: _effectiveGroupId
               });
             }
           }
-          // Auto-advance
           if (e.data === YT.PlayerState.ENDED && nextHash) {
             location.hash = nextHash;
           }
@@ -294,8 +298,7 @@ function renderVideo(pid, vid) {
       ? decodeURIComponent(url.split("/").filter(Boolean).pop().replace(/-/g, " "))
       : item.label;
     
-    // CHANGED: Only append the q_group_id string to the event if we actually have an ID
-    const gidParam = _effectiveGroupId ? `,q_group_id:'${_effectiveGroupId.replace(/'/g,"\\'")}'` : '';
+    const gidParam = `,q_group_id:'${_effectiveGroupId.replace(/'/g,"\\'")}'`;
     const gaAttr = `onclick="if(typeof gtag==='function')gtag('event','${eventName}',{link_label:'${label.replace(/'/g,"\\'")}',link_url:'${url.replace(/'/g,"\\'")}',video_title:'${v.title.replace(/'/g,"\\'")}',product_name:'${p.name.replace(/'/g,"\\'")}'${gidParam}})"`;
     
     return `<li><a href="${esc(url)}" target="_blank" rel="noopener" ${gaAttr}>${emoji} ${esc(label)}</a></li>`;
@@ -304,8 +307,7 @@ function renderVideo(pid, vid) {
   const docs = v.docs.map((d) => renderLink(d, "📄", "doc_click")).join("");
   const links = v.links.map((l) => renderLink(l, "🔗", "link_click")).join("");
   
-  // CHANGED: Only append the q_group_id string to the playlist event if we actually have an ID
-  const playlistGidParam = _effectiveGroupId ? `,q_group_id:'${_effectiveGroupId.replace(/'/g,"\\'")}'` : '';
+  const playlistGidParam = `,q_group_id:'${_effectiveGroupId.replace(/'/g,"\\'")}'`;
   const playlist = p.videos
     .map(
       (item, i) => `
@@ -357,8 +359,6 @@ function renderVideo(pid, vid) {
     </div>`;
     
   const next = p.videos[idx + 1];
-  
-  // CHANGED: Passing `v` and `p` to setupAutoAdvance so we can send video context to GA4
   setupAutoAdvance(v, p, next ? `#/product/${p.id}/video/${next.id}` : null);
   
   const active = document.querySelector(".pl-item.active");

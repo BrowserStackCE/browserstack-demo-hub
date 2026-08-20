@@ -10,9 +10,12 @@
 
     try {
       var params = new URLSearchParams(window.location.search);
-      var groupId = params.get('q_group_id') || sessionStorage.getItem('q_group_id');
+      var rawParam = params.get('q_group_id');
+      var storedId = sessionStorage.getItem('q_group_id');
+      
+      // The fallback cascade: URL -> Storage -> Default String
+      var groupId = rawParam || storedId || 'independent_visit';
 
-      // CHANGED: Ensure groupId is not just an empty string
       if (groupId && groupId.trim() !== '') {
         sessionStorage.setItem('q_group_id', groupId.trim());
         gtag('set', { 'q_group_id': groupId.trim() });
