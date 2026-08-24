@@ -1063,6 +1063,19 @@ const PRODUCTS = [
       },
     ],
   },
-
+  {
+    id: "load-testing",
+    name: "Load Testing",
+    tagline: "AI-Powered Load Testing for web apps",
+    icon: "",
+    iconSvg: "icons/icon-23.svg",
+    videos: [
+      {
+        id: "loadtesting-1", title: "Introducing BrowserStack Load Testing", youtubeId: "https://youtu.be/9XyjSWL-7jw?si=V4iShnl7lmcuYQRZ", duration: "05:10",
+        description: "Meet BrowserStack Load Testing—the comprehensive load testing platform built to validate your application's production resilience.",
+        docs: [{ label: "Learn more about Load Testing", url: "https://www.browserstack.com/docs/load-testing/overview" }], links: [{ label: "Check out Load Testing here", url: "https://www.youtube.com/redirect?event=video_description&redir_token=QUM4Zm9rUkFxNi1Vb0xqdDlfclpZNy1tcjNROXxBR3JiS2FuY0VnN05HMG85N2llVHNEWnlSWUNncHJQOHB5ZmNKV0Fyd01Vb0lCd1dFNzhyd2Z4TENGUHpzTVUtR2lIaXI5WUVva1QtV0ZfOE5haVZaRWh2WjZFcHJPNmlMVDdL&q=https%3A%2F%2Fload.browserstack.com%2Fquick-start&v=9XyjSWL-7jw" }, { label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
+      },
+    ],
+  },
 
 ];
