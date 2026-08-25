@@ -624,7 +624,10 @@ function renderDashboard(pid) {
     gtag('event', 'page_view', {
       page_title: document.title,
       page_path: location.pathname + location.search + '/#/product/' + pid,
-      page_location: location.href
+      page_location: location.href,
+      // ADD THESE TWO LINES:
+      product_name: p.name,
+      product_id: p.id
     });
   }
   const cards = p.videos.map(
@@ -705,7 +708,10 @@ function renderVideo(pid, vid) {
     gtag('event', 'page_view', {
       page_title: document.title,
       page_path: location.pathname + location.search + '/#/product/' + pid + '/video/' + vid,
-      page_location: location.href
+      page_location: location.href,
+      // ADD THESE TWO LINES:
+      product_name: p.name,
+      product_id: p.id
     });
     gtag('event', 'video_view', {
       video_title: v.title,
