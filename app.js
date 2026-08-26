@@ -563,7 +563,10 @@ function renderHome() {
     gtag('event', 'page_view', {
       page_title: document.title,
       page_path: location.pathname + location.search + '/#/',
-      page_location: location.href
+      page_location: location.href,
+      // ADD THESE TWO LINES:
+      product_name: 'Demo Hub Home',
+      product_id: 'home'
     });
   }
   const cards = PRODUCTS.map(

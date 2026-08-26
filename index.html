@@ -13,7 +13,7 @@
       var rawParam = params.get('q_group_id');
       var storedId = sessionStorage.getItem('q_group_id');
       
-      // The fallback cascade: URL -> Storage -> Default String
+      // CHANGED: The fallback cascade now lives here too!
       var groupId = rawParam || storedId || 'independent_visit';
 
       if (groupId && groupId.trim() !== '') {
