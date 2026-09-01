@@ -4,8 +4,11 @@ const app = document.getElementById("app");
 // Define our default fallback for direct sales shares
 const DEFAULT_GID = 'independent_visit';
 
-// Extract q_group_id from URL query string or session storage, fallback to default
-let _groupId = new URLSearchParams(window.location.search).get('q_group_id');
+// Extract q_group_id from URL query string OR hash query string, fallback to session/default
+// Handles both ?q_group_id=X (before hash) and #/path?q_group_id=X (after hash)
+const _hashSearch = location.hash.includes('?') ? location.hash.slice(location.hash.indexOf('?')) : '';
+let _groupId = new URLSearchParams(window.location.search).get('q_group_id')
+  || new URLSearchParams(_hashSearch).get('q_group_id');
 
 if (_groupId && _groupId.trim() !== '') {
   _groupId = _groupId.trim();
@@ -155,7 +158,9 @@ function thumbUrl(video) {
 }
 
 function render() {
-  const hash = location.hash.slice(1);
+  // Strip any query params appended after the hash (e.g. #/product/x?utm_source=y)
+  const rawHash = location.hash.slice(1);
+  const hash = rawHash.includes('?') ? rawHash.slice(0, rawHash.indexOf('?')) : rawHash;
   const parts = hash.split("/").filter(Boolean);
   const isHome = parts.length === 0 || parts[0] !== "product";
   document.querySelector(".navbar").classList.toggle("is-home", isHome);
