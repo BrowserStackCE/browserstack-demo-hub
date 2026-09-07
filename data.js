@@ -656,7 +656,7 @@ const PRODUCTS = [
         docs: [{label:"Upload Apps from Various Sources", url:"https://www.browserstack.com/docs/app-accessibility/app-source"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "appaccessibility-8", title: "App Accessibility - Test Behind Firewalls", youtubeId: "", duration: "03:31",
+        id: "appaccessibility-8", title: "App Accessibility - Test Behind Firewalls", youtubeId: "https://youtu.be/KM6mKeGNLMA", duration: "03:31",
         description: "Discover how to securely test internal, development, or staging mobile applications hosted behind corporate firewalls.",
         docs: [{label:"Test Behind Firewalls with Local Testing", url:"https://www.browserstack.com/docs/app-accessibility/local-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
