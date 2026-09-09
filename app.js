@@ -846,6 +846,14 @@ function fallbackCopy(text) {
   document.body.removeChild(ta);
 }
 function showCopyToast() {
+  // Flash the copy button
+  const btn = document.querySelector(".copy-link-btn");
+  if (btn) {
+    btn.classList.remove("copied");
+    void btn.offsetWidth; // force reflow to restart animation
+    btn.classList.add("copied");
+    setTimeout(() => btn.classList.remove("copied"), 500);
+  }
   let toast = document.getElementById("copy-toast");
   if (!toast) {
     toast = document.createElement("div");
