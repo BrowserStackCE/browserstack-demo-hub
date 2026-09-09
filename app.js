@@ -793,7 +793,11 @@ function renderVideo(pid, vid) {
           <h4>▶ Playlist &middot; ${p.videos.length} videos</h4>
           <ul class="playlist">${playlist}</ul>
         </div>
-        <div class="glass panel">
+        <div class="glass panel docs-panel" id="docs-panel">
+          <div class="docs-nudge" id="docs-nudge">
+            🚀 Ready to dive in? The docs will get you there fast!
+            <button class="docs-nudge-close" onclick="document.getElementById('docs-nudge').classList.remove('visible')">✕</button>
+          </div>
           <h4>Documentation</h4>
           <ul class="linklist">${docs || "<li><p>None yet.</p></li>"}</ul>
         </div>
@@ -809,6 +813,18 @@ function renderVideo(pid, vid) {
   
   const active = document.querySelector(".pl-item.active");
   if (active) active.scrollIntoView({ block: "nearest" });
+
+  // Show docs nudge tooltip after 0.8s, auto-dismiss after 6s
+  const nudge = document.getElementById("docs-nudge");
+  if (nudge) {
+    const nudgeTimer = setTimeout(() => {
+      nudge.classList.add("visible");
+      setTimeout(() => nudge.classList.remove("visible"), 6000);
+    }, 800);
+    // Clean up if user navigates away
+    const cleanup = () => { clearTimeout(nudgeTimer); nudge.classList.remove("visible"); };
+    window.addEventListener("hashchange", cleanup, { once: true });
+  }
 }
 
 // ── Copy video link + toast ────────────────────────────────────────────────
