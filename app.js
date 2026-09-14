@@ -174,7 +174,7 @@ const MiniPlayer = (() => {
       autoplay: '1',
       widget_referrer: location.href
     });
-    if (startSeconds > 1) params.set('start', Math.floor(startSeconds));
+    // seekTo() via onReady handles resume — start= param is unreliable in production
     const path = parsed.videoId || '';
     return `https://www.youtube.com/embed/${path}?${params.toString()}`;
   }
@@ -380,11 +380,12 @@ const MiniPlayer = (() => {
       }
       _mpPlayer = new YT.Player(iframe, {
         events: {
-          onStateChange: (e) => {
-            if (e.data === YT.PlayerState.PLAYING) {
-              // keep tracking current time for resume
+          onReady: (e) => {
+            if (startSeconds && startSeconds > 1) {
+              try { e.target.seekTo(startSeconds, true); e.target.playVideo(); } catch(err) {}
             }
-          }
+          },
+          onStateChange: (e) => {}
         }
       });
     });
@@ -476,7 +477,7 @@ const MiniPlayer = (() => {
   return { show, hide, close, expand, isVisible, getSavedTime, getCurrentVideoId, consumePendingResume };
 })();
 
-function setupAutoAdvance(videoObj, productObj, nextHash) {
+function setupAutoAdvance(videoObj, productObj, nextHash, resumeTime) {
   if (_currentPlayer) {
     try { _currentPlayer.destroy(); } catch(e) {}
     _currentPlayer = null;
@@ -491,8 +492,7 @@ function setupAutoAdvance(videoObj, productObj, nextHash) {
     _currentPlayer = new YT.Player(iframe, {
       events: {
         onReady: (e) => {
-          // Resume from mini player if applicable
-          const resumeTime = MiniPlayer.consumePendingResume(videoObj.id);
+          // Resume from mini player position if applicable
           if (resumeTime && resumeTime > 1) {
             try { e.target.seekTo(resumeTime, true); e.target.playVideo(); } catch(err) {}
           }
@@ -1165,21 +1165,9 @@ function renderVideo(pid, vid) {
     )
     .join("");
     
-  // Resume from mini player if applicable
-  const _resumeTime = MiniPlayer.consumePendingResume(v.id);
-  const _iframeSrc = (_resumeTime && _resumeTime > 1)
-    ? (() => {
-        const parsed = parseYouTube(v.youtubeId);
-        const params = new URLSearchParams({
-          rel: '0', modestbranding: '1', playsinline: '1',
-          enablejsapi: '1', origin: location.origin,
-          autoplay: '1',
-          start: Math.floor(_resumeTime),
-          widget_referrer: location.href
-        });
-        return `https://www.youtube.com/embed/${parsed.videoId || ''}?${params.toString()}`;
-      })()
-    : embedUrl(v, { jsapi: true, widgetReferrer: location.href });
+  // Capture resume time from mini player before rendering
+  const _resumeTime = MiniPlayer.consumePendingResume(v.id) || 0;
+  const _iframeSrc = embedUrl(v, { jsapi: true, widgetReferrer: location.href });
 
   app.innerHTML = `
     <div class="crumbs fade">
@@ -1225,7 +1213,7 @@ function renderVideo(pid, vid) {
     </div>`;
     
   const next = p.videos[idx + 1];
-  setupAutoAdvance(v, p, next ? `#/product/${p.id}/video/${next.id}` : null);
+  setupAutoAdvance(v, p, next ? `#/product/${p.id}/video/${next.id}` : null, _resumeTime);
 
   // Show keyboard shortcut hint once per session
   setTimeout(showKbHint, 1200);
