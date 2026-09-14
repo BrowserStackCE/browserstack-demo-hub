@@ -114,6 +114,368 @@ function whenYTReady(fn) {
 
 let _currentPlayer = null;
 
+// ── Mini Player State ──────────────────────────────────────────────────────
+const MiniPlayer = (() => {
+  let _el = null;           // the .miniplayer DOM element
+  let _mpPlayer = null;     // YT.Player instance inside mini player
+  let _videoObj = null;     // current video metadata
+  let _productObj = null;   // current product metadata
+  let _savedTime = 0;       // playback position to resume from
+  let _isVisible = false;
+  let _currentVideoId = null; // track which video is in the mini player
+
+  // ── Drag state ────────────────────────────────────────────────────────────
+  let _drag = {
+    active: false,
+    startX: 0, startY: 0,
+    origLeft: 0, origTop: 0
+  };
+
+  function _getEl() { return document.getElementById('miniplayer'); }
+
+  function _buildHTML(v, embedSrc) {
+    return `
+      <div class="mp-drag-handle" id="mp-drag-handle">
+        <div class="mp-drag-pill"></div>
+      </div>
+      <div class="mp-video-wrap">
+        <iframe
+          id="mp-yt-iframe"
+          src="${embedSrc}"
+          title="${esc(v.title)}"
+          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          referrerpolicy="origin">
+        </iframe>
+        <div class="mp-drag-shield"></div>
+      </div>
+      <div class="mp-info">
+        <span class="mp-title">${esc(v.title)}</span>
+        <div class="mp-actions">
+          <button class="mp-btn mp-btn-expand" title="Back to full player" onclick="MiniPlayer.expand()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </button>
+          <button class="mp-btn mp-btn-close" title="Close mini player" onclick="MiniPlayer.close()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="mp-resize-handle mp-resize-handle--tl" data-corner="tl"><div class="mp-resize-dots"></div></div>
+      <div class="mp-resize-handle mp-resize-handle--tr" data-corner="tr"><div class="mp-resize-dots"></div></div>
+      <div class="mp-resize-handle mp-resize-handle--bl" data-corner="bl"><div class="mp-resize-dots"></div></div>
+      <div class="mp-resize-handle mp-resize-handle--br" data-corner="br"><div class="mp-resize-dots"></div></div>`;
+  }
+
+  function _makeSrc(v, startSeconds) {
+    const parsed = parseYouTube(v.youtubeId);
+    const params = new URLSearchParams({
+      rel: '0', modestbranding: '1', playsinline: '1',
+      enablejsapi: '1', origin: location.origin,
+      autoplay: '1',
+      widget_referrer: location.href
+    });
+    if (startSeconds > 1) params.set('start', Math.floor(startSeconds));
+    const path = parsed.videoId || '';
+    return `https://www.youtube.com/embed/${path}?${params.toString()}`;
+  }
+
+  // Resize state
+  let _resize = {
+    active: false,
+    corner: 'br',
+    startX: 0, startY: 0,
+    origW: 0,
+    origLeft: 0, origTop: 0,
+    origRight: 0, origBottom: 0
+  };
+  const MIN_W = 240, MAX_W = 560;
+
+  function _attachDrag(el) {
+    // Drag is initiated from the pill (pointer-events: auto), not the full handle container
+    const handle = el.querySelector('.mp-drag-pill');
+    if (!handle) return;
+
+    function onPointerDown(e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      _drag.active = true;
+      el.classList.add('is-dragging');
+      el.classList.remove('snap-back');
+
+      const rect = el.getBoundingClientRect();
+      _drag.origLeft = rect.left;
+      _drag.origTop  = rect.top;
+      _drag.startX   = e.clientX;
+      _drag.startY   = e.clientY;
+
+      // Switch to absolute positioning from fixed bottom/right
+      el.style.left   = rect.left + 'px';
+      el.style.top    = rect.top  + 'px';
+      el.style.right  = 'auto';
+      el.style.bottom = 'auto';
+
+      e.preventDefault();
+    }
+
+    function onPointerMove(e) {
+      if (!_drag.active) return;
+      const dx = e.clientX - _drag.startX;
+      const dy = e.clientY - _drag.startY;
+      const newLeft = _drag.origLeft + dx;
+      const newTop  = _drag.origTop  + dy;
+
+      // Clamp within viewport
+      const W = window.innerWidth, H = window.innerHeight;
+      const elW = el.offsetWidth, elH = el.offsetHeight;
+      const clampedLeft = Math.max(8, Math.min(W - elW - 8, newLeft));
+      const clampedTop  = Math.max(8, Math.min(H - elH - 8, newTop));
+
+      el.style.left = clampedLeft + 'px';
+      el.style.top  = clampedTop  + 'px';
+    }
+
+    function onPointerUp() {
+      if (!_drag.active) return;
+      _drag.active = false;
+      el.classList.remove('is-dragging');
+
+      // Snap to nearest corner
+      const W = window.innerWidth, H = window.innerHeight;
+      const elW = el.offsetWidth, elH = el.offsetHeight;
+      const curLeft = parseFloat(el.style.left) || (W - elW - 28);
+      const curTop  = parseFloat(el.style.top)  || (H - elH - 28);
+      const cx = curLeft + elW / 2;
+      const cy = curTop  + elH / 2;
+      const MARGIN = 20;
+
+      const snapLeft = cx < W / 2 ? MARGIN : W - elW - MARGIN;
+      const snapTop  = cy < H / 2 ? MARGIN : H - elH - MARGIN;
+
+      el.classList.add('snap-back');
+      el.style.left   = snapLeft + 'px';
+      el.style.top    = snapTop  + 'px';
+      el.style.right  = 'auto';
+      el.style.bottom = 'auto';
+      setTimeout(() => el && el.classList.remove('snap-back'), 450);
+    }
+
+    handle.addEventListener('mousedown',  onPointerDown);
+    handle.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      onPointerDown({ clientX: t.clientX, clientY: t.clientY, button: 0, preventDefault: () => e.preventDefault() });
+    }, { passive: false });
+
+    document.addEventListener('mousemove',  onPointerMove);
+    document.addEventListener('mouseup',    onPointerUp);
+    document.addEventListener('touchmove',  (e) => {
+      if (!_drag.active) return;
+      const t = e.touches[0];
+      onPointerMove({ clientX: t.clientX, clientY: t.clientY });
+      e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchend', onPointerUp);
+
+    // ── Resize handles — all 4 corners ────────────────────────────────────
+    // Listeners go on .mp-resize-dots (pointer-events: auto) not the container
+    el.querySelectorAll('.mp-resize-handle').forEach(rh => {
+      const corner = rh.dataset.corner; // tl | tr | bl | br
+      const dots = rh.querySelector('.mp-resize-dots');
+      if (!dots) return;
+
+      function onResizeDown(e) {
+        if (e.button !== undefined && e.button !== 0) return;
+        _resize.active = true;
+        _resize.corner = corner;
+        _resize.startX = e.clientX;
+        _resize.startY = e.clientY;
+        _resize.origW  = el.offsetWidth;
+        // Normalise to left/top positioning
+        const rect = el.getBoundingClientRect();
+        el.style.left   = rect.left + 'px';
+        el.style.top    = rect.top  + 'px';
+        el.style.right  = 'auto';
+        el.style.bottom = 'auto';
+        _resize.origLeft = rect.left;
+        _resize.origTop  = rect.top;
+        _resize.origRight  = rect.right;
+        _resize.origBottom = rect.bottom;
+        el.classList.add('is-dragging');
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      dots.addEventListener('mousedown', onResizeDown);
+      dots.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        onResizeDown({ clientX: t.clientX, clientY: t.clientY, button: 0,
+          preventDefault: () => e.preventDefault(), stopPropagation: () => e.stopPropagation() });
+      }, { passive: false });
+    });
+
+    function onResizeMove(e) {
+      if (!_resize.active) return;
+      const dx = e.clientX - _resize.startX;
+      const dy = e.clientY - _resize.startY;
+      const corner = _resize.corner;
+      const W = window.innerWidth, H = window.innerHeight;
+
+      let newW = _resize.origW;
+      let newLeft = _resize.origLeft;
+      let newTop  = _resize.origTop;
+
+      // Horizontal resize
+      if (corner === 'tr' || corner === 'br') {
+        // Right edge moves right → grow; clamp so right edge stays in viewport
+        newW = Math.max(MIN_W, Math.min(MAX_W, _resize.origW + dx));
+        newW = Math.min(newW, W - _resize.origLeft - 8);
+      } else {
+        // Left edge moves left → grow; clamp so left edge stays in viewport
+        newW = Math.max(MIN_W, Math.min(MAX_W, _resize.origW - dx));
+        newW = Math.min(newW, _resize.origRight - 8);
+        const actualDx = _resize.origW - newW;
+        newLeft = Math.max(8, _resize.origLeft + actualDx);
+      }
+
+      // Vertical: top corners adjust top edge, bottom corners keep top fixed
+      const aspectH = newW * (9 / 16); // video area height
+      const infoH = 52; // approximate info bar height
+      const totalH = aspectH + infoH + 44; // +44 for drag handle
+
+      if (corner === 'tl' || corner === 'tr') {
+        // Top edge moves up → grow; clamp so top stays in viewport
+        newTop = Math.max(8, _resize.origBottom - totalH);
+      } else {
+        // Bottom edge: clamp so bottom stays in viewport
+        newTop = Math.max(8, Math.min(H - totalH - 8, _resize.origTop));
+      }
+
+      el.style.width = newW + 'px';
+      el.style.left  = newLeft + 'px';
+      el.style.top   = newTop  + 'px';
+    }
+
+    function onResizeUp() {
+      if (!_resize.active) return;
+      _resize.active = false;
+      el.classList.remove('is-dragging');
+    }
+
+    document.addEventListener('mousemove', (e) => { if (_resize.active) onResizeMove(e); });
+    document.addEventListener('mouseup',   onResizeUp);
+    document.addEventListener('touchmove', (e) => {
+      if (!_resize.active) return;
+      const t = e.touches[0];
+      onResizeMove({ clientX: t.clientX, clientY: t.clientY });
+      e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchend', onResizeUp);
+  }
+
+  function _initYTPlayer(startSeconds) {
+    whenYTReady(() => {
+      const iframe = document.getElementById('mp-yt-iframe');
+      if (!iframe) return;
+      if (_mpPlayer) {
+        try { _mpPlayer.destroy(); } catch(e) {}
+        _mpPlayer = null;
+      }
+      _mpPlayer = new YT.Player(iframe, {
+        events: {
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.PLAYING) {
+              // keep tracking current time for resume
+            }
+          }
+        }
+      });
+    });
+  }
+
+  // ── Public API ─────────────────────────────────────────────────────────────
+
+  function show(videoObj, productObj, startSeconds) {
+    _videoObj   = videoObj;
+    _productObj = productObj;
+    _savedTime  = startSeconds || 0;
+    _currentVideoId = videoObj.id;
+
+    // Remove existing if any
+    const existing = _getEl();
+    if (existing) existing.remove();
+
+    const el = document.createElement('div');
+    el.className = 'miniplayer';
+    el.id = 'miniplayer';
+    el.innerHTML = _buildHTML(videoObj, _makeSrc(videoObj, _savedTime));
+    document.body.appendChild(el);
+    _el = el;
+    _isVisible = true;
+
+    _attachDrag(el);
+    _initYTPlayer(_savedTime);
+  }
+
+  function hide() {
+    const el = _getEl();
+    if (!el) return;
+    // Capture current time before hiding
+    if (_mpPlayer && typeof _mpPlayer.getCurrentTime === 'function') {
+      try { _savedTime = _mpPlayer.getCurrentTime(); } catch(e) {}
+    }
+    if (_mpPlayer) { try { _mpPlayer.destroy(); } catch(e) {} _mpPlayer = null; }
+    el.classList.add('is-hiding');
+    setTimeout(() => { el.remove(); _el = null; }, 320);
+    _isVisible = false;
+    _currentVideoId = null;
+  }
+
+  function close() {
+    const el = _getEl();
+    if (!el) return;
+    if (_mpPlayer) { try { _mpPlayer.destroy(); } catch(e) {} _mpPlayer = null; }
+    el.classList.add('is-hiding');
+    setTimeout(() => { el.remove(); _el = null; }, 320);
+    _isVisible = false;
+    _videoObj = null;
+    _productObj = null;
+    _savedTime = 0;
+    _currentVideoId = null;
+  }
+
+  function expand() {
+    if (!_videoObj || !_productObj) return;
+    // Capture current time
+    if (_mpPlayer && typeof _mpPlayer.getCurrentTime === 'function') {
+      try { _savedTime = _mpPlayer.getCurrentTime(); } catch(e) {}
+    }
+    const vid = _videoObj;
+    const pid = _productObj.id;
+    const t   = Math.floor(_savedTime);
+    // Hide mini player first
+    hide();
+    // Navigate back to the full video page
+    // Use a flag so renderVideo knows to resume at _savedTime
+    _pendingResume = { videoId: vid.id, productId: pid, time: t };
+    location.hash = `#/product/${pid}/video/${vid.id}`;
+  }
+
+  function getSavedTime() { return _savedTime; }
+  function isVisible()    { return _isVisible; }
+  function getCurrentVideoId() { return _currentVideoId; }
+
+  // Called by renderVideo to check if we should resume
+  let _pendingResume = null;
+  function consumePendingResume(videoId) {
+    if (_pendingResume && _pendingResume.videoId === videoId) {
+      const t = _pendingResume.time;
+      _pendingResume = null;
+      return t;
+    }
+    return null;
+  }
+
+  return { show, hide, close, expand, isVisible, getSavedTime, getCurrentVideoId, consumePendingResume };
+})();
+
 function setupAutoAdvance(videoObj, productObj, nextHash) {
   if (_currentPlayer) {
     try { _currentPlayer.destroy(); } catch(e) {}
@@ -128,7 +490,13 @@ function setupAutoAdvance(videoObj, productObj, nextHash) {
 
     _currentPlayer = new YT.Player(iframe, {
       events: {
-        onReady: (_e) => {},
+        onReady: (e) => {
+          // Resume from mini player if applicable
+          const resumeTime = MiniPlayer.consumePendingResume(videoObj.id);
+          if (resumeTime && resumeTime > 1) {
+            try { e.target.seekTo(resumeTime, true); e.target.playVideo(); } catch(err) {}
+          }
+        },
         onStateChange: (e) => {
           if (e.data === YT.PlayerState.PLAYING && !videoStarted) {
             videoStarted = true;
@@ -167,7 +535,39 @@ function render() {
   // Clear search input on navigation
   const searchEl = document.getElementById("globalSearch");
   if (searchEl) searchEl.value = "";
-  if (parts[0] === "product" && parts[2] === "video") {
+
+  const isVideoPage = parts[0] === "product" && parts[2] === "video";
+
+  // If navigating AWAY from a video page and a player is active, show mini player
+  if (!isVideoPage && _currentPlayer) {
+    const currentHash = location.hash;
+    // Find which video was playing
+    const prevHash = window._lastVideoHash || '';
+    const prevParts = prevHash.slice(1).split('/').filter(Boolean);
+    if (prevParts[0] === 'product' && prevParts[2] === 'video') {
+      const pid = prevParts[1], vid = prevParts[3];
+      const p = PRODUCTS.find(x => x.id === pid);
+      const v = p && p.videos.find(x => x.id === vid);
+      if (p && v && MiniPlayer.getCurrentVideoId() !== vid) {
+        let startTime = 0;
+        if (_currentPlayer && typeof _currentPlayer.getCurrentTime === 'function') {
+          try { startTime = _currentPlayer.getCurrentTime(); } catch(e) {}
+        }
+        MiniPlayer.show(v, p, startTime);
+      }
+    }
+    // Destroy the full-page player
+    try { _currentPlayer.destroy(); } catch(e) {}
+    _currentPlayer = null;
+  }
+
+  // If navigating TO the video that's in the mini player, hide the mini player
+  if (isVideoPage && MiniPlayer.isVisible() && MiniPlayer.getCurrentVideoId() === parts[3]) {
+    MiniPlayer.hide();
+  }
+
+  if (isVideoPage) {
+    window._lastVideoHash = location.hash;
     renderVideo(parts[1], parts[3]);
   } else if (parts[0] === "product") {
     renderDashboard(parts[1]);
@@ -765,6 +1165,22 @@ function renderVideo(pid, vid) {
     )
     .join("");
     
+  // Resume from mini player if applicable
+  const _resumeTime = MiniPlayer.consumePendingResume(v.id);
+  const _iframeSrc = (_resumeTime && _resumeTime > 1)
+    ? (() => {
+        const parsed = parseYouTube(v.youtubeId);
+        const params = new URLSearchParams({
+          rel: '0', modestbranding: '1', playsinline: '1',
+          enablejsapi: '1', origin: location.origin,
+          autoplay: '1',
+          start: Math.floor(_resumeTime),
+          widget_referrer: location.href
+        });
+        return `https://www.youtube.com/embed/${parsed.videoId || ''}?${params.toString()}`;
+      })()
+    : embedUrl(v, { jsapi: true, widgetReferrer: location.href });
+
   app.innerHTML = `
     <div class="crumbs fade">
       <button class="back-btn" onclick="location.hash='#/product/${p.id}'">&#8592; Back</button>
@@ -775,7 +1191,7 @@ function renderVideo(pid, vid) {
     <div class="detail fade">
       <div class="main-col">
         <div class="glass player-wrap">
-          <iframe id="yt-player" src="${embedUrl(v, { jsapi: true, widgetReferrer: location.href })}" title="${esc(v.title)}" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="origin"></iframe>
+          <iframe id="yt-player" src="${_iframeSrc}" title="${esc(v.title)}" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="origin"></iframe>
         </div>
         <div class="glass panel desc-panel">
           <div class="desc-title-row">
@@ -810,6 +1226,24 @@ function renderVideo(pid, vid) {
     
   const next = p.videos[idx + 1];
   setupAutoAdvance(v, p, next ? `#/product/${p.id}/video/${next.id}` : null);
+
+  // Show keyboard shortcut hint once per session
+  setTimeout(showKbHint, 1200);
+
+  // Show mini player discovery hint on the player
+  setTimeout(() => {
+    const playerWrap = document.querySelector('.player-wrap');
+    if (!playerWrap) return;
+    let hint = playerWrap.querySelector('.mp-discovery-hint');
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.className = 'mp-discovery-hint';
+      hint.innerHTML = '<span class="mp-hint-icon">✦</span> Leave this page — video continues in a mini player';
+      playerWrap.appendChild(hint);
+    }
+    hint.classList.add('visible');
+    setTimeout(() => hint.classList.remove('visible'), 5000);
+  }, 3500);
   
   const active = document.querySelector(".pl-item.active");
   if (active) active.scrollIntoView({ block: "nearest" });
@@ -894,6 +1328,70 @@ if (document.getElementById("darkToggle")) {
   });
 }
 initDarkMode();
+
+// ── Keyboard shortcut hint toast ──────────────────────────────────────────
+function showKbHint() {
+  let hint = document.getElementById('kb-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'kb-hint';
+    hint.className = 'kb-hint';
+    hint.innerHTML = '<kbd>Space</kbd> Play/Pause &nbsp;·&nbsp; <kbd>F</kbd> Fullscreen';
+    document.body.appendChild(hint);
+  }
+  hint.classList.add('visible');
+  setTimeout(() => hint.classList.remove('visible'), 4000);
+}
+
+// ── Keyboard Shortcuts ────────────────────────────────────────────────────
+// Space → play/pause active player
+// M     → toggle mini player (show/hide)
+// F     → fullscreen on video page
+document.addEventListener('keydown', (e) => {
+  // Ignore when typing in an input/textarea
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+
+  if (e.key === ' ' || e.code === 'Space') {
+    e.preventDefault();
+    // Try full-page player first, then mini player
+    if (_currentPlayer && typeof _currentPlayer.getPlayerState === 'function') {
+      try {
+        const state = _currentPlayer.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+          _currentPlayer.pauseVideo();
+        } else {
+          _currentPlayer.playVideo();
+        }
+      } catch(err) {}
+    } else if (MiniPlayer.isVisible()) {
+      // Mini player — send postMessage to iframe
+      const mpIframe = document.getElementById('mp-yt-iframe');
+      if (mpIframe) {
+        try {
+          const mpPlayer = document.getElementById('mp-yt-iframe').__ytPlayer;
+          if (mpPlayer && typeof mpPlayer.getPlayerState === 'function') {
+            const s = mpPlayer.getPlayerState();
+            if (s === YT.PlayerState.PLAYING) mpPlayer.pauseVideo();
+            else mpPlayer.playVideo();
+          }
+        } catch(err) {}
+      }
+    }
+  }
+
+if (e.key === 'f' || e.key === 'F') {
+    // Fullscreen the main player iframe on video pages
+    const iframe = document.getElementById('yt-player');
+    if (iframe) {
+      try {
+        if (iframe.requestFullscreen) iframe.requestFullscreen();
+        else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
+        else if (iframe.mozRequestFullScreen) iframe.mozRequestFullScreen();
+      } catch(err) {}
+    }
+  }
+});
 
 window.addEventListener("hashchange", render);
 render();
