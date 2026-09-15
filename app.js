@@ -1420,11 +1420,14 @@ document.addEventListener('keydown', (e) => {
     if (_currentPlayer && typeof _currentPlayer.getPlayerState === 'function') {
       try {
         const state = _currentPlayer.getPlayerState();
+        // Only act on stable states: PLAYING(1), PAUSED(2), CUED(5)
+        // Ignore UNSTARTED(-1), ENDED(0), BUFFERING(3) — player not ready
         if (state === YT.PlayerState.PLAYING) {
           _currentPlayer.pauseVideo();
-        } else {
+        } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED) {
           _currentPlayer.playVideo();
         }
+        // state -1/0/3: do nothing — avoids the snap-back on slow/incognito loads
       } catch(err) {}
     } else if (MiniPlayer.isVisible()) {
       // Mini player — send postMessage to iframe
@@ -1435,7 +1438,7 @@ document.addEventListener('keydown', (e) => {
           if (mpPlayer && typeof mpPlayer.getPlayerState === 'function') {
             const s = mpPlayer.getPlayerState();
             if (s === YT.PlayerState.PLAYING) mpPlayer.pauseVideo();
-            else mpPlayer.playVideo();
+            else if (s === YT.PlayerState.PAUSED || s === YT.PlayerState.CUED) mpPlayer.playVideo();
           }
         } catch(err) {}
       }
