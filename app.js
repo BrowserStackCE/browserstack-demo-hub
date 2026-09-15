@@ -190,7 +190,62 @@ const MiniPlayer = (() => {
   };
   const MIN_W = 240, MAX_W = 560;
 
-  function _attachDrag(el) {
+  // Spring physics snap animation
+  function _springSnap(el, fromX, fromY, toX, toY) {
+    // Cancel any running spring
+    if (el._springRaf) cancelAnimationFrame(el._springRaf);
+
+    const stiffness = 280;  // spring stiffness
+    const damping   = 22;   // damping coefficient
+    const mass      = 1;
+
+    let x = fromX, y = fromY;
+    let vx = 0, vy = 0;
+    let lastTime = null;
+
+    function step(ts) {
+      if (!lastTime) { lastTime = ts; el._springRaf = requestAnimationFrame(step); return; }
+      const dt = Math.min((ts - lastTime) / 1000, 0.032); // cap at 32ms
+      lastTime = ts;
+
+      // Spring force
+      const ax = (-stiffness * (x - toX) - damping * vx) / mass;
+      const ay = (-stiffness * (y - toY) - damping * vy) / mass;
+
+      vx += ax * dt;
+      vy += ay * dt;
+      x  += vx * dt;
+      y  += vy * dt;
+
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+
+      // Check if settled (velocity and displacement both tiny)
+      const settled = Math.abs(x - toX) < 0.15 && Math.abs(y - toY) < 0.15
+                   && Math.abs(vx) < 0.5 && Math.abs(vy) < 0.5;
+
+      if (!settled && document.body.contains(el)) {
+        el._springRaf = requestAnimationFrame(step);
+      } else {
+        el.style.left = toX + 'px';
+        el.style.top  = toY + 'px';
+        el._springRaf = null;
+        // Subtle landing pulse
+        el.style.transition = 'transform 0.18s cubic-bezier(0.34,1.56,0.64,1)';
+        el.style.transform = 'scale(1.03)';
+        setTimeout(() => {
+          if (el) {
+            el.style.transform = 'scale(1)';
+            setTimeout(() => { if (el) el.style.transition = ''; }, 200);
+          }
+        }, 80);
+      }
+    }
+
+    el._springRaf = requestAnimationFrame(step);
+  }
+
+    function _attachDrag(el) {
     // Drag is initiated from the pill (pointer-events: auto), not the full handle container
     const handle = el.querySelector('.mp-drag-pill');
     if (!handle) return;
@@ -238,7 +293,7 @@ const MiniPlayer = (() => {
       _drag.active = false;
       el.classList.remove('is-dragging');
 
-      // Snap to nearest corner
+      // Determine nearest corner
       const W = window.innerWidth, H = window.innerHeight;
       const elW = el.offsetWidth, elH = el.offsetHeight;
       const curLeft = parseFloat(el.style.left) || (W - elW - 28);
@@ -247,15 +302,14 @@ const MiniPlayer = (() => {
       const cy = curTop  + elH / 2;
       const MARGIN = 20;
 
-      const snapLeft = cx < W / 2 ? MARGIN : W - elW - MARGIN;
-      const snapTop  = cy < H / 2 ? MARGIN : H - elH - MARGIN;
+      const targetLeft = cx < W / 2 ? MARGIN : W - elW - MARGIN;
+      const targetTop  = cy < H / 2 ? MARGIN : H - elH - MARGIN;
 
-      el.classList.add('snap-back');
-      el.style.left   = snapLeft + 'px';
-      el.style.top    = snapTop  + 'px';
       el.style.right  = 'auto';
       el.style.bottom = 'auto';
-      setTimeout(() => el && el.classList.remove('snap-back'), 450);
+
+      // JS spring animation — much better than CSS transition
+      _springSnap(el, curLeft, curTop, targetLeft, targetTop);
     }
 
     handle.addEventListener('mousedown',  onPointerDown);
