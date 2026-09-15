@@ -1400,13 +1400,22 @@ function showKbHint() {
 // Space → play/pause active player
 // M     → toggle mini player (show/hide)
 // F     → fullscreen on video page
+let _spaceDebounce = 0;
 document.addEventListener('keydown', (e) => {
   // Ignore when typing in an input/textarea
   const tag = document.activeElement && document.activeElement.tagName;
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
 
+  // Ignore if the YouTube iframe itself has focus — it handles space natively
+  // and our handler would double-fire, toggling the state back immediately
+  if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
+
   if (e.key === ' ' || e.code === 'Space') {
     e.preventDefault();
+    // Debounce: ignore if fired within 300ms of last space press
+    const now = Date.now();
+    if (now - _spaceDebounce < 300) return;
+    _spaceDebounce = now;
     // Try full-page player first, then mini player
     if (_currentPlayer && typeof _currentPlayer.getPlayerState === 'function') {
       try {
