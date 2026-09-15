@@ -1406,28 +1406,46 @@ document.addEventListener('keydown', (e) => {
   const tag = document.activeElement && document.activeElement.tagName;
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
 
-  // Ignore if the YouTube iframe itself has focus — it handles space natively
-  // and our handler would double-fire, toggling the state back immediately
-  if (document.activeElement && document.activeElement.tagName === 'IFRAME') return;
-
   if (e.key === ' ' || e.code === 'Space') {
     e.preventDefault();
-    // Debounce: ignore if fired within 300ms of last space press
+
+    // Debounce: ignore if fired within 400ms of last space press
     const now = Date.now();
-    if (now - _spaceDebounce < 300) return;
+    if (now - _spaceDebounce < 400) return;
     _spaceDebounce = now;
+
+    // If the YT iframe has focus, blur it so it does NOT also handle this
+    // space press — otherwise both our handler and the iframe toggle the state
+    const ytIframe = document.getElementById('yt-player');
+    if (ytIframe && document.activeElement === ytIframe) {
+      ytIframe.blur();
+    }
+
     // Try full-page player first, then mini player
     if (_currentPlayer && typeof _currentPlayer.getPlayerState === 'function') {
       try {
         const state = _currentPlayer.getPlayerState();
         // Only act on stable states: PLAYING(1), PAUSED(2), CUED(5)
-        // Ignore UNSTARTED(-1), ENDED(0), BUFFERING(3) — player not ready
+        // Ignore UNSTARTED(-1), ENDED(0), BUFFERING(3) — player not ready yet
         if (state === YT.PlayerState.PLAYING) {
           _currentPlayer.pauseVideo();
         } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED) {
           _currentPlayer.playVideo();
+        } else if (state === 3) {
+          // Buffering — defer until ready, then play
+          const waitAndPlay = setInterval(() => {
+            try {
+              const s = _currentPlayer.getPlayerState();
+              if (s === YT.PlayerState.PAUSED || s === YT.PlayerState.CUED) {
+                _currentPlayer.playVideo();
+                clearInterval(waitAndPlay);
+              } else if (s === YT.PlayerState.PLAYING || s === YT.PlayerState.ENDED) {
+                clearInterval(waitAndPlay);
+              }
+            } catch(e) { clearInterval(waitAndPlay); }
+          }, 100);
+          setTimeout(() => clearInterval(waitAndPlay), 3000);
         }
-        // state -1/0/3: do nothing — avoids the snap-back on slow/incognito loads
       } catch(err) {}
     } else if (MiniPlayer.isVisible()) {
       // Mini player — send postMessage to iframe
