@@ -1159,6 +1159,16 @@ function renderDashboard(pid) {
   }
 }
 
+function renderLiveCta(v) {
+  var desktopBtn = v.desktopLiveUrl
+    ? '<a class="live-cta-btn live-cta-btn--desktop" href="' + esc(v.desktopLiveUrl) + '" target="_blank" rel="noopener" onclick="if(typeof gtag==="function")gtag("event","live_cta_click",{cta_type:"desktop",video_id:"' + v.id + '"})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Desktop Browser</a>'
+    : '';
+  var mobileBtn = v.mobileLiveUrl
+    ? '<a class="live-cta-btn live-cta-btn--mobile" href="' + esc(v.mobileLiveUrl) + '" target="_blank" rel="noopener" onclick="if(typeof gtag==="function")gtag("event","live_cta_click",{cta_type:"mobile",video_id:"' + v.id + '"})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Mobile Browser</a>'
+    : '';
+  return '<div class="live-cta-panel"><div class="live-cta-glow"></div><div class="live-cta-content"><div class="live-cta-left"><span class="live-cta-badge">&#x26A1; LIVE SESSION</span><h3 class="live-cta-heading">Try this feature on a BrowserStack Real Device!</h3><p class="live-cta-sub">Launch an instant live session &mdash; no setup, no installs. Just click and test.</p></div><div class="live-cta-actions">' + desktopBtn + mobileBtn + '</div></div></div>';
+}
+
 function renderVideo(pid, vid) {
   const p = PRODUCTS.find((x) => x.id === pid);
   const idx = p ? p.videos.findIndex((x) => x.id === vid) : -1;
@@ -1245,6 +1255,7 @@ function renderVideo(pid, vid) {
           </div>
           <p>${esc(v.description)}</p>
         </div>
+        ${(v.desktopLiveUrl || v.mobileLiveUrl) ? renderLiveCta(v) : ''}
       </div>
       <div class="side">
         <div class="glass panel pl-panel">

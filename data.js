@@ -22,107 +22,149 @@ const PRODUCTS = [
       {
         id: "live-1", title: "BrowserStack Live - Bookmark URLs", youtubeId: "https://youtu.be/_MiFH3lAZLQ", duration: "2:08",
         description: "Learn how to save and manage URLs for quick access during your live testing sessions.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label: "Bookmark URLs with BrowserStack Live", url:"https://www.browserstack.com/docs/live/bookmarks"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-2", title: "BrowserStack Live - Bug Reporting", youtubeId: "https://youtu.be/iTaCDsgbSAs", duration: "3:08",
         description: "Discover how to capture and report bugs directly to your project management tools while testing. Integrations include JIRA, Azure, Trello, Github, Slack.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Log Bugs", url:"https://www.browserstack.com/docs/live/logging"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-3", title: "BrowserStack Live - Multi Device Testing", youtubeId: "https://youtu.be/Ep0MO1MnUQc", duration: "2:21",
         description: "Learn how to test your website simultaneously or seamlessly across multiple devices and browsers.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Test on Multiple Devices", url:"https://www.browserstack.com/docs/live/multi-device-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-4", title: "BrowserStack Live - Accessibility Testing on Desktop Browsers", youtubeId: "https://youtu.be/Y-VjorRVWug", duration: "2:14",
         description: "Understand how to evaluate your website's accessibility features on various desktop browsers.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Test accessibility using Screen Reader on desktop", url:"https://www.browserstack.com/docs/live/accessibility-testing/screenreader-desktop"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-5", title: "BrowserStack Live - Accessibility Testing on Mobile Browsers", youtubeId: "https://youtu.be/v82FAGKD55c", duration: "4:15",
         description: "Learn the steps to perform comprehensive accessibility checks on mobile browsers.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Accessibility testing using Mobile Devices", url:"https://www.browserstack.com/docs/live/accessibility-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-6", title: "BrowserStack Live - Download Files and Images from Real Devices", youtubeId: "https://youtu.be/LAqnCkQs6qA", duration: "5:45",
         description: "See how to download and verify files or images directly from remote real devices.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Download Files and Images", url:"https://www.browserstack.com/docs/live/media/download-files"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-7", title: "BrowserStack Live - Image Injection", youtubeId: "https://youtu.be/Y7NzHHraApQ", duration: "2:50",
         description: "Discover how to inject images into device cameras to test upload workflows or scanning features.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Image Injection on Real Devices", url:"https://www.browserstack.com/docs/live/media/image-injection"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-8", title: "BrowserStack Live - Network Monitoring", youtubeId: "https://youtu.be/orD9FVffat4", duration: "2:02",
         description: "Understand how to monitor network traffic and analyze requests during your testing sessions.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Debug Website with DevTools", url:"https://www.browserstack.com/docs/live/debug-website/devtools"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-9", title: "BrowserStack Live - Network Throttling", youtubeId: "https://youtu.be/el_fuOsUmnM", duration: "3:14",
         description: "Learn how to simulate different network speeds, like 3G or offline modes, to test app performance.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Network Simulation and Throttling", url:"https://www.browserstack.com/docs/live/network/network-simulation"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-10", title: "BrowserStack Live - QR Code and Barcode Scanning", youtubeId: "https://youtu.be/nxk1xPbQnfg", duration: "2:32",
         description: "See how to test QR code and barcode scanning features using real device cameras.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"QR Code and Barcode Scanning via Image Injection", url:"https://www.browserstack.com/docs/live/media/image-injection"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-11", title: "BrowserStack Live - Record a Session", youtubeId: "https://youtu.be/KK7WTDBbqoU", duration: "2:59",
         description: "Learn how to record your interactive testing sessions for easier debugging and team sharing.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Record a Live Session", url:"https://www.browserstack.com/docs/live/logging/record-session"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-12", title: "BrowserStack Live - SIM for OTP/Message Testing", youtubeId: "https://youtu.be/gNGMlyBz2GE", duration: "2:33",
         description: "Discover how to use real SIM cards to test SMS and OTP workflows on remote devices.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"SIM-based OTP and Message Testing", url:"https://www.browserstack.com/docs/live/device-settings/sim"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-13", title: "BrowserStack Live - Testing Apple Pay Workflows on iOS Devices", youtubeId: "https://youtu.be/VJgWfQ5ophQ", duration: "4:55",
         description: "Understand how to validate Apple Pay integrations and payment workflows on real iOS devices.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Test Apple Pay Workflows on iOS", url:"https://www.browserstack.com/docs/live/payments/apple-pay"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-14", title: "BrowserStack Live - Testing Audio Input", youtubeId: "https://youtu.be/HAoT_L7CtAM", duration: "3:11",
         description: "Learn how to test voice search, voice notes, and other audio input functionalities.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Audio Injection on Android Devices", url:"https://www.browserstack.com/docs/live/media/audio-injection-android"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       
       {
         id: "live-15", title: "BrowserStack Live - Testing Google Pay Workflows on Android-Chrome Devices", youtubeId: "https://youtu.be/GeqGzSYkIvY", duration: "3:09",
         description: "See how to test Google Pay integrations and payment flows on real Android devices using Chrome.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Test Google Pay Workflows on Android", url:"https://www.browserstack.com/docs/live/payments/google-pay"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-16", title: "BrowserStack Live - Test Internal Networks", youtubeId: "https://youtu.be/aZy_RcqRUqQ", duration: "2:04",
         description: "Discover how to securely test local, staging, and internal websites using BrowserStack Local.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Test Internal Networks with BrowserStack Local", url:"https://www.browserstack.com/docs/live/local-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-17", title: "BrowserStack Live - Timezone Specific Testing", youtubeId: "https://youtu.be/1pwwKPIip5k", duration: "3:29",
         description: "Learn how to simulate different geographical timezones to test localized date and time features.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Timezone-Specific Testing", url:"https://www.browserstack.com/docs/live/device-settings/change-timezone"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-18", title: "BrowserStack Live - Upload Files", youtubeId: "https://youtu.be/9hFptFjLZXo", duration: "3:42",
         description: "Understand how to test file upload functionalities from a remote device's local storage.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Upload Files to Real Devices", url:"https://www.browserstack.com/docs/live/media/file-injection"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-19", title: "BrowserStack Live - Test Across Resolutions", youtubeId: "https://youtu.be/wr6pq5_xYZo", duration: "2:16",
         description: "See how to verify your website's responsiveness by testing across various screen resolutions.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Test Across Resolutions", url:"https://www.browserstack.com/docs/live/responsive-design-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
         id: "live-20", title: "BrowserStack Live - Test Websites Behind Proxies", youtubeId: "https://youtu.be/ACx1PSgGNlM", duration: "2:24",
         description: "Learn how to configure proxy settings to securely access and test internal websites hosted behind corporate proxies.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Test Behind Proxies", url:"https://www.browserstack.com/docs/live/local-testing/behind-proxy"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
        {
         id: "live-21", title: "BrowserStack Live - Test Across different IP Geolocations", youtubeId: "https://youtu.be/_8i8kN-2HAo", duration: "3:00",
         description: "Understand how to simulate different geographical locations via IP addresses to test region-specific web applications.",
+        desktopLiveUrl: "https://live.browserstack.com/dashboard#os=Windows&os_version=11&browser=Chrome&browser_version=151.0&scale_to_fit=true&url=https://ecommercebs.vercel.app/&resolution=responsive-mode&speed=1&start=true",
+        mobileLiveUrl: "https://live.browserstack.com/dashboard#os=iOS&os_version=17&device=iPhone+15&browser=Chrome&scale_to_fit=true&url=https://ecommercebs.vercel.app/&speed=1&start=true",
         docs: [{label:"Simulate IP Geolocation", url:"https://www.browserstack.com/docs/live/device-settings/change-location"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
     ],
