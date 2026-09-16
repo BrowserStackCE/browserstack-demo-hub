@@ -1161,13 +1161,485 @@ function renderDashboard(pid) {
 
 function renderLiveCta(v) {
   var desktopBtn = v.desktopLiveUrl
-    ? '<a class="live-cta-btn live-cta-btn--desktop" href="' + esc(v.desktopLiveUrl) + '" target="_blank" rel="noopener" onclick="if(typeof gtag==="function")gtag("event","live_cta_click",{cta_type:"desktop",video_id:"' + v.id + '"})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Desktop Browser</a>'
+    ? '<button class="live-cta-btn live-cta-btn--desktop" onclick="LiveUrlModal.open(\'' + v.id + '\',\'desktop\',\'' + esc(v.desktopLiveUrl) + '\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Desktop Browser</button>'
     : '';
   var mobileBtn = v.mobileLiveUrl
-    ? '<a class="live-cta-btn live-cta-btn--mobile" href="' + esc(v.mobileLiveUrl) + '" target="_blank" rel="noopener" onclick="if(typeof gtag==="function")gtag("event","live_cta_click",{cta_type:"mobile",video_id:"' + v.id + '"})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Mobile Browser</a>'
+    ? '<button class="live-cta-btn live-cta-btn--mobile" onclick="LiveUrlModal.open(\'' + v.id + '\',\'mobile\',\'' + esc(v.mobileLiveUrl) + '\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Mobile Browser</button>'
     : '';
-  return '<div class="live-cta-panel"><div class="live-cta-glow"></div><div class="live-cta-content"><div class="live-cta-left"><span class="live-cta-badge">&#x26A1; LIVE SESSION</span><h3 class="live-cta-heading">Try this feature on a BrowserStack Real Device!</h3><p class="live-cta-sub">Launch an instant live session &mdash; no setup, no installs. Just click and test.</p></div><div class="live-cta-actions">' + desktopBtn + mobileBtn + '</div></div></div>';
+  var androidAppBtn = v.androidAppLiveUrl
+    ? '<button class="live-cta-btn live-cta-btn--android" onclick="AppLiveModal.open(\'' + v.id + '\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Try on Real Android Device</button>'
+    : '';
+  return '<div class="live-cta-panel"><div class="live-cta-glow"></div><div class="live-cta-content"><div class="live-cta-left"><span class="live-cta-badge">&#x26A1; LIVE SESSION</span><h3 class="live-cta-heading">Try this feature on a BrowserStack Real Device!</h3><p class="live-cta-sub">Launch an instant live session &mdash; no setup, no installs. Just click and test.</p></div><div class="live-cta-actions">' + desktopBtn + mobileBtn + androidAppBtn + '</div></div></div>';
 }
+
+// ── Live URL Modal (desktop / mobile browser buttons) ────────────────────────
+var LiveUrlModal = (function () {
+  var _videoId = null;
+  var _type = null;
+  var _baseUrl = '';
+  var SAMPLE_URL = 'https://ecommercebs.vercel.app';
+
+  function _ensureModal() {
+    if (document.getElementById('lum-overlay')) return;
+    var el = document.createElement('div');
+    el.id = 'lum-overlay';
+    el.className = 'lum-overlay';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'lum-title');
+    el.innerHTML = [
+      '<div class="lum-box">',
+        '<button class="lum-close" aria-label="Close" onclick="LiveUrlModal.close()">',
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+        '</button>',
+        '<div class="lum-header">',
+          '<div class="lum-icon" id="lum-icon">',
+            '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+          '</div>',
+          '<div>',
+            '<h2 class="lum-title" id="lum-title">Launch Live Session</h2>',
+            '<p class="lum-subtitle" id="lum-subtitle">Choose how you want to test</p>',
+          '</div>',
+        '</div>',
+        '<div class="lum-options">',
+          '<button class="lum-option" onclick="LiveUrlModal.launchSample()">',
+            '<div class="lum-option-icon lum-option-icon--sample">',
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>',
+            '</div>',
+            '<div class="lum-option-body">',
+              '<strong>Test with sample URL</strong>',
+              '<span>Launches our demo e-commerce site &mdash; ready instantly, no setup needed.</span>',
+            '</div>',
+            '<svg class="lum-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+          '</button>',
+          '<div class="lum-option lum-option--input">',
+            '<div class="lum-option-icon lum-option-icon--custom">',
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+            '</div>',
+            '<div class="lum-option-body lum-option-body--full">',
+              '<strong>Test with your URL</strong>',
+              '<div class="lum-url-row">',
+                '<input id="lum-url-input" type="url" placeholder="https://your-site.com" autocomplete="url" spellcheck="false" onkeydown="if(event.key===\'Enter\')LiveUrlModal.launchCustom()" />',
+                '<button class="lum-launch-btn" onclick="LiveUrlModal.launchCustom()">',
+                  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+                  'Launch',
+                '</button>',
+              '</div>',
+              '<div id="lum-url-err" class="lum-url-err" style="display:none"></div>',
+            '</div>',
+          '</div>',
+        '</div>',
+      '</div>'
+    ].join('');
+    el.addEventListener('click', function (e) { if (e.target === el) LiveUrlModal.close(); });
+    document.body.appendChild(el);
+  }
+
+  function _buildUrl(siteUrl) {
+    if (_baseUrl.includes('{{url}}')) {
+      return _baseUrl.replace('{{url}}', encodeURIComponent(siteUrl));
+    }
+    // Replace existing url= parameter in the hash fragment (e.g. #...&url=...&...)
+    if (/[#&]url=/.test(_baseUrl)) {
+      return _baseUrl.replace(/((?:^|[#&])url=)[^&]*/, '$1' + encodeURIComponent(siteUrl));
+    }
+    // url= not present — append it inside the hash if there is one, else as a query param
+    var hashIdx = _baseUrl.indexOf('#');
+    if (hashIdx !== -1) {
+      return _baseUrl + '&url=' + encodeURIComponent(siteUrl);
+    }
+    return _baseUrl + '?url=' + encodeURIComponent(siteUrl);
+  }
+
+  return {
+    open: function (videoId, type, baseUrl) {
+      _videoId = videoId;
+      _type = type;
+      _baseUrl = baseUrl;
+      _ensureModal();
+      var icon = document.getElementById('lum-icon');
+      if (icon) {
+        icon.innerHTML = type === 'mobile'
+          ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>'
+          : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>';
+      }
+      var subtitle = document.getElementById('lum-subtitle');
+      if (subtitle) subtitle.textContent = type === 'mobile' ? 'Mobile Browser \u2014 choose a URL to test' : 'Desktop Browser \u2014 choose a URL to test';
+      var inp = document.getElementById('lum-url-input');
+      if (inp) inp.value = '';
+      var err = document.getElementById('lum-url-err');
+      if (err) { err.style.display = 'none'; err.textContent = ''; }
+      var overlay = document.getElementById('lum-overlay');
+      overlay.classList.add('visible');
+      document.body.style.overflow = 'hidden';
+    },
+
+    close: function () {
+      var overlay = document.getElementById('lum-overlay');
+      if (overlay) overlay.classList.remove('visible');
+      document.body.style.overflow = '';
+    },
+
+    launchSample: function () {
+      var url = _buildUrl(SAMPLE_URL);
+      if (typeof gtag === 'function') gtag('event', 'live_cta_click', { cta_type: _type, video_id: _videoId, url_type: 'sample' });
+      window.open(url, '_blank', 'noopener');
+      LiveUrlModal.close();
+    },
+
+    launchCustom: function () {
+      var inp = document.getElementById('lum-url-input');
+      var err = document.getElementById('lum-url-err');
+      var raw = (inp ? inp.value : '').trim();
+      if (!raw) {
+        if (err) { err.style.display = ''; err.textContent = 'Please enter a URL.'; }
+        if (inp) inp.focus();
+        return;
+      }
+      if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+      try { new URL(raw); } catch (e) {
+        if (err) { err.style.display = ''; err.textContent = "That doesn't look like a valid URL."; }
+        if (inp) inp.focus();
+        return;
+      }
+      if (err) { err.style.display = 'none'; err.textContent = ''; }
+      var url = _buildUrl(raw);
+      if (typeof gtag === 'function') gtag('event', 'live_cta_click', { cta_type: _type, video_id: _videoId, url_type: 'custom' });
+      window.open(url, '_blank', 'noopener');
+      LiveUrlModal.close();
+    }
+  };
+}());
+
+// ── App Live – Sample App Modal (curl flow) ───────────────────────────────
+var AppLiveModal = (function () {
+  var _videoId = null;
+  var _realCmd = '';
+
+  function _ensureModal() {
+    if (document.getElementById('alm-overlay')) return;
+    var el = document.createElement('div');
+    el.id = 'alm-overlay';
+    el.className = 'alm-overlay';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'alm-title');
+    el.innerHTML = [
+      '<div class="alm-box">',
+        // Close button
+        '<button class="alm-close" aria-label="Close" onclick="AppLiveModal.close()">',
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+        '</button>',
+        // Header
+        '<div class="alm-header">',
+          '<div class="alm-icon">',
+            '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+          '</div>',
+          '<div>',
+            '<h2 class="alm-title" id="alm-title">Try on a Real Android Device</h2>',
+            '<p class="alm-subtitle">Follow the steps below to launch an App Live session with the Demo sample app.</p>',
+          '</div>',
+        '</div>',
+        // Warning
+        '<div class="alm-warning">',
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+          '<span>A <strong>Demo sample APK</strong> will be uploaded to your BrowserStack account. You can delete it anytime from your App Live dashboard.</span>',
+        '</div>',
+        // Step indicators
+        '<div class="alm-steps-nav">',
+          '<div class="alm-step-dot active" id="alm-dot-1"><span>1</span></div>',
+          '<div class="alm-step-line"></div>',
+          '<div class="alm-step-dot" id="alm-dot-2"><span>2</span></div>',
+          '<div class="alm-step-line"></div>',
+          '<div class="alm-step-dot" id="alm-dot-3"><span>3</span></div>',
+        '</div>',
+        // ── Step 1: Credentials ──
+        '<div id="alm-cached" class="alm-step-panel alm-cached-panel" style="display:none">',
+          '<p class="alm-step-label">Ready to launch</p>',
+          '<div class="alm-cached-info">',
+            '<div class="alm-cached-icon">',
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+            '</div>',
+            '<div class="alm-cached-text">',
+              '<strong>Demo sample app is ready</strong>',
+              '<span>Your app is already set up on this device &mdash; no re-upload needed.</span>',
+            '</div>',
+          '</div>',
+          '<p class="alm-cached-note">',
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+            '<span>App ID saved on this browser. <button class="alm-reset-link" onclick="AppLiveModal.resetCached()">Use a different app</button></span>',
+          '</p>',
+          '<button class="alm-btn-launch" id="alm-cached-launch-btn" onclick="AppLiveModal.launchCached()">',
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+            'Launch App Live Session',
+          '</button>',
+        '</div>',
+        '<div id="alm-step-1" class="alm-step-panel">',
+          '<p class="alm-step-label">Step 1 &mdash; Enter your BrowserStack credentials</p>',
+          '<div class="alm-field">',
+            '<label for="alm-username">Username <a href="https://www.browserstack.com/accounts/profile/details" target="_blank" rel="noopener noreferrer" style="font-size:0.8em;font-weight:400;">(Find yours)</a></label>',
+            '<input id="alm-username" type="text" placeholder="e.g. john_doe" autocomplete="username" spellcheck="false" />',
+          '</div>',
+          '<div class="alm-field">',
+            '<label for="alm-accesskey">Access Key <a href="https://www.browserstack.com/accounts/profile/details" target="_blank" rel="noopener noreferrer" style="font-size:0.8em;font-weight:400;">(Find yours)</a></label>',
+            '<div class="alm-key-wrap">',
+              '<input id="alm-accesskey" type="password" placeholder="Your access key" autocomplete="current-password" spellcheck="false" />',
+              '<button type="button" class="alm-eye" aria-label="Toggle visibility" onclick="AppLiveModal.toggleKey()">',
+                '<svg id="alm-eye-show" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+                '<svg id="alm-eye-hide" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+              '</button>',
+            '</div>',
+          '</div>',
+          '<div class="alm-privacy"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Credentials are only used to generate the API command in the next step and are <strong>never stored</strong>.</span></div>',
+          '<div id="alm-err-1" class="alm-status alm-status--error" style="display:none"></div>',
+          '<button class="alm-btn-primary" onclick="AppLiveModal.goStep2()">',
+            'Generate curl Command <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+          '</button>',
+        '</div>',
+        // ── Step 2: Run curl ──
+        '<div id="alm-step-2" class="alm-step-panel" style="display:none">',
+          '<p class="alm-step-label">Step 2 &mdash; Run this command in your terminal</p>',
+          '<div class="alm-curl-block">',
+            '<pre id="alm-curl-pre" class="alm-curl-pre"></pre>',
+            '<button type="button" class="alm-copy-btn" onclick="AppLiveModal.copyCurl()" title="Copy">',
+              '<svg id="alm-copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+              '<span id="alm-copy-lbl">Copy</span>',
+            '</button>',
+          '</div>',
+          '<p class="alm-hint">The command will return a JSON response like: <code>{"app_url":"bs://abc123..."}</code></p>',
+          '<div class="alm-step2-nav">',
+            '<button class="alm-btn-back" onclick="AppLiveModal.goStep1()">&#8592; Back</button>',
+            '<button class="alm-btn-primary" onclick="AppLiveModal.goStep3()">',
+              'I ran it &mdash; Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+            '</button>',
+          '</div>',
+        '</div>',
+        // ── Step 3: Paste hash & launch ──
+        '<div id="alm-step-3" class="alm-step-panel" style="display:none">',
+          '<p class="alm-step-label">Step 3 &mdash; Paste the app hashed ID and launch</p>',
+          '<p class="alm-hint">From the terminal output, copy the value after <code>bs://</code> and paste it below.</p>',
+          '<div class="alm-field">',
+            '<label for="alm-hashid">App Hashed ID <span class="alm-hint-inline">(the part after bs://)</span></label>',
+            '<input id="alm-hashid" type="text" placeholder="e.g. 772fccdc3629a071067a50bd2f49310b34917696" spellcheck="false" />',
+          '</div>',
+          '<div id="alm-err-3" class="alm-status alm-status--error" style="display:none"></div>',
+          '<div class="alm-step2-nav">',
+            '<button class="alm-btn-back" onclick="AppLiveModal.goStep2()">&#8592; Back</button>',
+            '<button class="alm-btn-launch" id="alm-launch-btn" onclick="AppLiveModal.launch()">',
+              '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+              'Launch App Live Session',
+            '</button>',
+          '</div>',
+        '</div>',
+      '</div>'
+    ].join('');
+    el.addEventListener('click', function (e) { if (e.target === el) AppLiveModal.close(); });
+    document.body.appendChild(el);
+  }
+
+  function _setDots(step) {
+    [1, 2, 3].forEach(function (n) {
+      var d = document.getElementById('alm-dot-' + n);
+      if (!d) return;
+      d.classList.toggle('active', n === step);
+      d.classList.toggle('done', n < step);
+    });
+  }
+
+  function _showStep(n) {
+    [1, 2, 3].forEach(function (i) {
+      var p = document.getElementById('alm-step-' + i);
+      if (p) p.style.display = i === n ? '' : 'none';
+    });
+    _setDots(n);
+  }
+
+  return {
+    open: function (videoId) {
+      _videoId = videoId;
+      _ensureModal();
+      // Reset
+      ['alm-username', 'alm-accesskey', 'alm-hashid'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      var k = document.getElementById('alm-accesskey');
+      if (k) k.type = 'password';
+      var es = document.getElementById('alm-eye-show'), eh = document.getElementById('alm-eye-hide');
+      if (es) es.style.display = ''; if (eh) eh.style.display = 'none';
+      ['alm-err-1', 'alm-err-3'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+      });
+      // Check localStorage for a cached app hashed ID
+      var cachedId = null;
+      try { cachedId = localStorage.getItem('bs_applive_hashed_id'); } catch(e) {}
+      if (cachedId) {
+        // Show cached panel, hide step panels
+        var cached = document.getElementById('alm-cached');
+        if (cached) cached.style.display = '';
+        [1,2,3].forEach(function(n) {
+          var p = document.getElementById('alm-step-' + n);
+          if (p) p.style.display = 'none';
+        });
+        // Hide step dots when using cached
+        var nav = document.querySelector('.alm-steps-nav');
+        if (nav) nav.style.display = 'none';
+      } else {
+        var cached = document.getElementById('alm-cached');
+        if (cached) cached.style.display = 'none';
+        var nav = document.querySelector('.alm-steps-nav');
+        if (nav) nav.style.display = '';
+        _showStep(1);
+      }
+      var overlay = document.getElementById('alm-overlay');
+      overlay.classList.add('visible');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () {
+        var u = document.getElementById('alm-username');
+        if (!cachedId && u) u.focus();
+      }, 80);
+    },
+
+    close: function () {
+      var overlay = document.getElementById('alm-overlay');
+      if (overlay) overlay.classList.remove('visible');
+      document.body.style.overflow = '';
+    },
+
+    launchCached: function () {
+      var cachedId = null;
+      try { cachedId = localStorage.getItem('bs_applive_hashed_id'); } catch(e) {}
+      if (!cachedId) { AppLiveModal.resetCached(); return; }
+      var btn = document.getElementById('alm-cached-launch-btn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Opening session\u2026'; }
+      var sessionUrl = 'https://app-live.browserstack.com/dashboard#os=android&os_version=15.0&device=Google+Pixel+9'
+        + '&app_hashed_id=' + encodeURIComponent(cachedId)
+        + '&scale_to_fit=true&speed=1&start=true';
+      if (typeof gtag === 'function') {
+        gtag('event', 'applive_sample_launch', { video_id: _videoId, cached: true });
+      }
+      setTimeout(function () {
+        window.open(sessionUrl, '_blank', 'noopener');
+        AppLiveModal.close();
+        if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Launch App Live Session'; }
+      }, 400);
+    },
+
+    resetCached: function () {
+      try { localStorage.removeItem('bs_applive_hashed_id'); } catch(e) {}
+      var cached = document.getElementById('alm-cached');
+      if (cached) cached.style.display = 'none';
+      var nav = document.querySelector('.alm-steps-nav');
+      if (nav) nav.style.display = '';
+      _showStep(1);
+      setTimeout(function () {
+        var u = document.getElementById('alm-username');
+        if (u) u.focus();
+      }, 80);
+    },
+
+    toggleKey: function () {
+      var inp = document.getElementById('alm-accesskey');
+      var es = document.getElementById('alm-eye-show'), eh = document.getElementById('alm-eye-hide');
+      if (!inp) return;
+      var isPwd = inp.type === 'password';
+      inp.type = isPwd ? 'text' : 'password';
+      if (es) es.style.display = isPwd ? 'none' : '';
+      if (eh) eh.style.display = isPwd ? '' : 'none';
+    },
+
+    goStep1: function () { _showStep(1); },
+
+    goStep2: function () {
+      var username = (document.getElementById('alm-username').value || '').trim();
+      var accesskey = (document.getElementById('alm-accesskey').value || '').trim();
+      var err = document.getElementById('alm-err-1');
+      if (!username || !accesskey) {
+        if (err) {
+          err.style.display = '';
+          err.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Please enter both your username and access key.';
+        }
+        return;
+      }
+      if (err) err.style.display = 'none';
+      var uploadUrl = 'https://github.com/BrowserStackCE/browserstack-demo-hub/releases/download/2.9.12/NexusDemo-v2.9.12.apk';
+      // Store real command for copying; display masked version on screen
+      _realCmd = 'curl -u "' + username + ':' + accesskey + '" \\\n  -X POST "https://api-cloud.browserstack.com/app-live/upload" \\\n  -F \x27data={"url": "' + uploadUrl + '"}\x27';
+      var maskedCmd = 'curl -u "' + username.replace(/./g, '\u25CF') + ':' + accesskey.replace(/./g, '\u25CF') + '" \\\n  -X POST "https://api-cloud.browserstack.com/app-live/upload" \\\n  -F \x27data={"url": "' + uploadUrl + '"}\x27';
+      var pre = document.getElementById('alm-curl-pre');
+      if (pre) pre.textContent = maskedCmd;
+      var lbl = document.getElementById('alm-copy-lbl');
+      if (lbl) lbl.textContent = 'Copy';
+      _showStep(2);
+    },
+
+    goStep3: function () {
+      _showStep(3);
+      setTimeout(function () {
+        var h = document.getElementById('alm-hashid');
+        if (h) h.focus();
+      }, 80);
+    },
+
+    copyCurl: function () {
+      var lbl = document.getElementById('alm-copy-lbl');
+      var text = _realCmd;
+      if (!text) return;
+      var done = function () {
+        if (lbl) {
+          lbl.textContent = 'Copied!';
+          setTimeout(function () { lbl.textContent = 'Copy'; }, 2000);
+        }
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () {
+          var ta = document.createElement('textarea');
+          ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); done(); } catch (e) {}
+          document.body.removeChild(ta);
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    },
+
+    launch: function () {
+      var raw = (document.getElementById('alm-hashid').value || '').trim();
+      var err = document.getElementById('alm-err-3');
+      function showErr(msg) {
+        if (err) { err.style.display = ''; err.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ' + msg; }
+      }
+      if (!raw) { showErr('Please paste the app hashed ID first.'); return; }
+      // Accept full bs:// URL or bare hash
+      var hashedId = raw.replace(/^bs:\/\//, '').trim();
+      if (!/^[a-f0-9]{10,}$/i.test(hashedId)) {
+        showErr('That doesn\'t look like a valid app hashed ID. Copy the value after <code>bs://</code> from the terminal output.');
+        return;
+      }
+      if (err) err.style.display = 'none';
+      var btn = document.getElementById('alm-launch-btn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Opening session…'; }
+      var sessionUrl = 'https://app-live.browserstack.com/dashboard#os=android&os_version=15.0&device=Google+Pixel+9'
+        + '&app_hashed_id=' + encodeURIComponent(hashedId)
+        + '&scale_to_fit=true&speed=1&start=true';
+      if (typeof gtag === 'function') {
+        gtag('event', 'applive_sample_launch', { video_id: _videoId });
+      }
+      setTimeout(function () {
+        try { localStorage.setItem('bs_applive_hashed_id', hashedId); } catch(e) {}
+        window.open(sessionUrl, '_blank', 'noopener');
+        AppLiveModal.close();
+        if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Launch App Live Session'; }
+      }, 600);
+    }
+  };
+}());
 
 function renderVideo(pid, vid) {
   const p = PRODUCTS.find((x) => x.id === pid);
@@ -1255,7 +1727,7 @@ function renderVideo(pid, vid) {
           </div>
           <p>${esc(v.description)}</p>
         </div>
-        ${(v.desktopLiveUrl || v.mobileLiveUrl) ? renderLiveCta(v) : ''}
+        ${(v.desktopLiveUrl || v.mobileLiveUrl || v.androidAppLiveUrl) ? renderLiveCta(v) : ''}
       </div>
       <div class="side">
         <div class="glass panel pl-panel">

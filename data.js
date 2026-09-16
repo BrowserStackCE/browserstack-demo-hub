@@ -177,142 +177,142 @@ const PRODUCTS = [
     iconSvg: "icons/icon-10.svg",
     videos: [
       {
-        id: "applive-1", title: "BrowserStack App Live - App Behaviour under different Network Conditions", youtubeId: "https://youtu.be/Z1kjm23h8Gs", duration: "1:32",
+        id: "applive-1", title: "BrowserStack App Live - App Behaviour under different Network Conditions", youtubeId: "https://youtu.be/Z1kjm23h8Gs", duration: "1:32", androidAppLiveUrl: true,
         description: "Learn how to test your mobile app's behavior and responsiveness under various network speeds and conditions.",
         docs: [{label:"Network Simulation", url:"https://www.browserstack.com/docs/app-live/advanced-features/network-simulation"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-2", title: "BrowserStack App Live - App Performance Testing", youtubeId: "https://youtu.be/hdQJa2bs4b4", duration: "2:53",
+        id: "applive-2", title: "BrowserStack App Live - App Performance Testing", youtubeId: "https://youtu.be/hdQJa2bs4b4", duration: "2:53", androidAppLiveUrl: true,
         description: "Discover how to profile and analyze your app's performance metrics like CPU, memory, and battery usage.",
         docs: [{label:"App Performance Testing",url:"https://www.browserstack.com/docs/app-live/app-performance-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-3", title: "BrowserStack App Live - Audio Injection", youtubeId: "https://youtu.be/Dm6RZByuS6E", duration: "2:57",
+        id: "applive-3", title: "BrowserStack App Live - Audio Injection", youtubeId: "https://youtu.be/Dm6RZByuS6E", duration: "2:57", androidAppLiveUrl: true,
         description: "Learn how to inject audio files into the device microphone to test voice commands and audio features.",
         docs: [{label:"Audio Injection",url:"https://www.browserstack.com/docs/app-live/media/audio-injection-android"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-4", title: "BrowserStack App Live - Biometric Authentication", youtubeId: "https://youtu.be/lGpkF9jMrE4", duration: "6:11",
+        id: "applive-4", title: "BrowserStack App Live - Biometric Authentication", youtubeId: "https://youtu.be/lGpkF9jMrE4", duration: "6:11", androidAppLiveUrl: true,
         description: "Understand how to simulate Face ID and Touch ID to test biometric authentication workflows in your app.",
         docs: [{label: "Biometric Authentication",url:"https://www.browserstack.com/docs/app-live/authentication-security/biometric-authentication"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-5", title: "BrowserStack App Live - Download Files", youtubeId: "https://youtu.be/b1i2nFIwdzc", duration: "3:10",
+        id: "applive-5", title: "BrowserStack App Live - Download Files", youtubeId: "https://youtu.be/b1i2nFIwdzc", duration: "3:10", androidAppLiveUrl: true,
         description: "See how to validate file download functionalities and access downloaded files on remote real devices.",
         docs: [{label:"File Download",url: "https://www.browserstack.com/docs/app-live/media/download-files"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-6", title: "BrowserStack App Live - GPS Geolocation based Testing", youtubeId: "https://youtu.be/EqUTbr_XaQs", duration: "2:07",
+        id: "applive-6", title: "BrowserStack App Live - GPS Geolocation based Testing", youtubeId: "https://youtu.be/EqUTbr_XaQs", duration: "2:07", androidAppLiveUrl: true,
         description: "Learn how to mock GPS coordinates to test location-based features and services within your mobile app.",
         docs: [{label: "Device GPS", url : "https://www.browserstack.com/docs/app-live/location-testing/geolocation-testing#Device_GPS"},{label: "IP Based Location", url: "https://www.browserstack.com/docs/app-live/location-testing/geolocation-testing#IP_location"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-7", title: "BrowserStack App Live - Gradle Integration", youtubeId: "https://youtu.be/ktD0zZ8C9m4", duration: "3:41",
+        id: "applive-7", title: "BrowserStack App Live - Gradle Integration", youtubeId: "https://youtu.be/ktD0zZ8C9m4", duration: "3:41", androidAppLiveUrl: true,
         description: "Discover how to integrate App Live with Gradle to streamline your Android app testing workflow.",
         docs: [{label:"Gradle Integration",url:"https://www.browserstack.com/docs/app-live/app-source/gradle"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-8", title: "BrowserStack App Live - Image Injection for Barcode/QR Code", youtubeId: "https://youtu.be/664zM38V5ho", duration: "2:23",
+        id: "applive-8", title: "BrowserStack App Live - Image Injection for Barcode/QR Code", youtubeId: "https://youtu.be/664zM38V5ho", duration: "2:23", androidAppLiveUrl: true,
         description: "Learn how to inject images into the device camera to test QR code and barcode scanning features.",
         docs: [{label:"Image Injection",url:"https://www.browserstack.com/docs/app-live/media/image-injection"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-9", title: "BrowserStack App Live - Integrate with Android Studio", youtubeId: "https://youtu.be/LOCSLD-xRwo", duration: "1:47",
+        id: "applive-9", title: "BrowserStack App Live - Integrate with Android Studio", youtubeId: "https://youtu.be/LOCSLD-xRwo", duration: "1:47", androidAppLiveUrl: true,
         description: "See how to connect App Live directly with Android Studio for seamless development and testing.",
         docs: [{label:"Android Studio Integration",url:"https://www.browserstack.com/docs/app-live/ide-integration/android-studio-integration"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-10", title: "BrowserStack App Live - IP Whitelisting", youtubeId: "https://youtu.be/aMSxcdNy51o", duration: "1:51",
+        id: "applive-10", title: "BrowserStack App Live - IP Whitelisting", youtubeId: "https://youtu.be/aMSxcdNy51o", duration: "1:51", androidAppLiveUrl: true,
         description: "Understand how to use static IPs to test applications securely in environments with strict IP whitelisting.",
         docs: [{label:"IP Whitelisting",url:"https://www.browserstack.com/docs/enterprise/setup-network-controls#inbound-ip-whitelisting"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-11", title: "BrowserStack App Live - Locale Based Testing", youtubeId: "https://youtu.be/192JPU9Sbos", duration: "2:08",
+        id: "applive-11", title: "BrowserStack App Live - Locale Based Testing", youtubeId: "https://youtu.be/192JPU9Sbos", duration: "2:08", androidAppLiveUrl: true,
         description: "Learn how to change device language and region settings to test app localization and internationalization.",
         docs: [{label:"Localization Testing",url:"https://www.browserstack.com/docs/app-live/location-testing/localization-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-12", title: "BrowserStack App Live - Local Testing", youtubeId: "https://youtu.be/tpOIoxN70HY", duration: "3:13",
+        id: "applive-12", title: "BrowserStack App Live - Local Testing", youtubeId: "https://youtu.be/tpOIoxN70HY", duration: "3:13", androidAppLiveUrl: true,
         description: "Discover how to securely test mobile apps against your local, development, or staging environments.",
         docs: [{label:"Local Testing",url:"https://www.browserstack.com/docs/app-live/local-testing/set-up-local-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-13", title: "BrowserStack App Live - Multi-Device Testing", youtubeId: "https://youtu.be/vQp4ShvS1uE", duration: "2:33",
+        id: "applive-13", title: "BrowserStack App Live - Multi-Device Testing", youtubeId: "https://youtu.be/vQp4ShvS1uE", duration: "2:33", androidAppLiveUrl: true,
         description: "Learn how to test your application across multiple real mobile devices simultaneously for faster validation.",
         docs: [{label:"Multi Device Testing",url:"https://www.browserstack.com/docs/app-live/multi-device-testing"},{label:"Single Tab",url:"https://www.browserstack.com/docs/app-live/multi-device-testing/single-tab"},{label:"Multi Tab",url:"https://www.browserstack.com/docs/app-live/multi-device-testing/multi-tab"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-14", title: "BrowserStack App Live - SIM based OTP/Message Testing via Device", youtubeId: "https://youtu.be/Kg5rL_FjdtI", duration: "3:23",
+        id: "applive-14", title: "BrowserStack App Live - SIM based OTP/Message Testing via Device", youtubeId: "https://youtu.be/Kg5rL_FjdtI", duration: "3:23", androidAppLiveUrl: true,
         description: "See how to test SMS, OTPs, and cellular network features using real devices equipped with SIM cards.",
         docs: [{label:"Sim Enabled Testing",url:"https://www.browserstack.com/docs/app-live/advanced-features/sim"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-15", title: "BrowserStack App Live - Payment Workflows", youtubeId: "https://youtu.be/lBfhaku831Y", duration: "1:56",
+        id: "applive-15", title: "BrowserStack App Live - Payment Workflows", youtubeId: "https://youtu.be/lBfhaku831Y", duration: "1:56", androidAppLiveUrl: true,
         description: "Understand how to validate in-app purchases and payment gateway integrations on real mobile devices.",
         docs: [{label:"Payment Workflows",url:"https://www.browserstack.com/docs/app-live/advanced-features/apple-pay"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-16", title: "BrowserStack App Live - IP Region Specific Geolocation Testing", youtubeId: "https://www.youtube.com/watch?v=sgn2dh5qRoY", duration: "2:08",
+        id: "applive-16", title: "BrowserStack App Live - IP Region Specific Geolocation Testing", youtubeId: "https://www.youtube.com/watch?v=sgn2dh5qRoY", duration: "2:08", androidAppLiveUrl: true,
         description: "Learn how to simulate specific IP locations to test region-restricted content and geotargeted features.",
         docs: [{label:"IP Geolocation",url:"https://www.browserstack.com/docs/app-live/location-testing/geolocation-testing#IP_location"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-17", title: "BrowserStack App Live - Test Apps Behind a Firewall or VPN", youtubeId: "https://www.youtube.com/watch?v=zB0VftFzaVo", duration: "2:46",
+        id: "applive-17", title: "BrowserStack App Live - Test Apps Behind a Firewall or VPN", youtubeId: "https://www.youtube.com/watch?v=zB0VftFzaVo", duration: "2:46", androidAppLiveUrl: true,
         description: "Discover how to establish secure connections to test internal apps hosted behind corporate firewalls or VPNs.",
         docs: [{label:"Test Behind Firewall/VPN",url:"https://www.browserstack.com/docs/app-live/local-testing/behind-firewall-vpn"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-18", title: "BrowserStack App Live - Test Dependent Apps", youtubeId: "https://www.youtube.com/watch?v=-ox6jN0yD3w", duration: "1:41",
+        id: "applive-18", title: "BrowserStack App Live - Test Dependent Apps", youtubeId: "https://www.youtube.com/watch?v=-ox6jN0yD3w", duration: "1:41", androidAppLiveUrl: true,
         description: "Learn how to install and interact with secondary or third-party apps required for your main app's workflow.",
         docs: [{label:"Dependent App Testing",url:"https://www.browserstack.com/docs/app-live/app-management/test-dependent-apps"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-19", title: "BrowserStack App Live - Image Injection for Pictures", youtubeId: "https://youtu.be/oOc9d3dq1yc", duration: "3:52",
+        id: "applive-19", title: "BrowserStack App Live - Image Injection for Pictures", youtubeId: "https://youtu.be/oOc9d3dq1yc", duration: "3:52", androidAppLiveUrl: true,
         description: "Learn how to inject custom images into the device camera to test camera-dependent features and workflows in your mobile applications.",
         docs: [{label:"Image Injection",url:"https://www.browserstack.com/docs/app-live/media/image-injection"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-20", title: "BrowserStack App Live - Video Injection", youtubeId: "https://www.youtube.com/watch?v=rlxhyjJq9tk", duration: "2:19",
+        id: "applive-20", title: "BrowserStack App Live - Video Injection", youtubeId: "https://www.youtube.com/watch?v=rlxhyjJq9tk", duration: "2:19", androidAppLiveUrl: true,
         description: "Learn how to inject video files into the device camera stream to test live video capture and processing.",
         docs: [{label:"Video Injection",url:"https://www.browserstack.com/docs/app-live/media/video-injection"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-21", title: "BrowserStack App Live - Accessibility Testing", youtubeId: "https://youtu.be/yOrzCmH3XEI", duration: "2:38",
+        id: "applive-21", title: "BrowserStack App Live - Accessibility Testing", youtubeId: "https://youtu.be/yOrzCmH3XEI", duration: "2:38", androidAppLiveUrl: true,
         description: "Understand how to evaluate your applications accessibility features on various devices.",
         docs: [{label:"Accessibility Testing",url:"https://www.browserstack.com/docs/app-live/accessibility-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-22", title: "BrowserStack App Live - Configure App Specific Settings", youtubeId: "https://youtu.be/oknYJRobJk0", duration: "2:07",
+        id: "applive-22", title: "BrowserStack App Live - Configure App Specific Settings", youtubeId: "https://youtu.be/oknYJRobJk0", duration: "2:07", androidAppLiveUrl: true,
         description: "Learn how to configure app-specific settings on real devices to validate how your mobile application behaves under different user preferences and permissions.",
         docs: [{label:"App Configurations",url:"https://www.browserstack.com/docs/app-live/media/image-injection#enable-image-injection-setting-for-your-app"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-23", title: "BrowserStack App Live - Accessibility Testing on Native Android Screen Reader", youtubeId: "https://youtu.be/9cMvcCBvMtE", duration: "3:22",
+        id: "applive-23", title: "BrowserStack App Live - Accessibility Testing on Native Android Screen Reader", youtubeId: "https://youtu.be/9cMvcCBvMtE", duration: "3:22", androidAppLiveUrl: true,
         description: "Learn how to evaluate your mobile application's accessibility using the native Android screen reader on real devices.",
         docs: [{label:"Screen Reader",url:"https://www.browserstack.com/docs/app-live/accessibility-testing/screenreader-android"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-24", title: "BrowserStack App Live - Configure iOS Settings", youtubeId: "https://youtu.be/8_MATKZbMq8", duration: "3:59",
+        id: "applive-24", title: "BrowserStack App Live - Configure iOS Settings", youtubeId: "https://youtu.be/8_MATKZbMq8", duration: "3:59", androidAppLiveUrl: true,
         description: "Learn how to access and modify native iOS device settings to test your applications under various system configurations.",
         docs: [{label:"iOS Settings",url:"https://www.browserstack.com/docs/app-live/ios-settings"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-25", title: "BrowserStack App Live - Test with iOS Entitlements", youtubeId: "https://youtu.be/Ci0WqIIXJFo", duration: "2:11",
+        id: "applive-25", title: "BrowserStack App Live - Test with iOS Entitlements", youtubeId: "https://youtu.be/Ci0WqIIXJFo", duration: "2:11", androidAppLiveUrl: true,
         description: "Learn how to test with iOS entitlements to validate specific device capabilities and secure app features on real devices.",
         docs: [{label:"iOS Entitlements",url:"https://www.browserstack.com/docs/app-live/advanced-features/iOS-entitlements"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-26", title: "BrowserStack App Live - Network Monitoring", youtubeId: "https://youtu.be/z1y7pBbJZSY", duration: "2:14",
+        id: "applive-26", title: "BrowserStack App Live - Network Monitoring", youtubeId: "https://youtu.be/z1y7pBbJZSY", duration: "2:14", androidAppLiveUrl: true,
         description: "Understand how to monitor network traffic and analyze requests during your testing sessions.",
         docs: [{label:"Network Tracking",url:"https://www.browserstack.com/docs/app-live/session-debugging/network-tracking"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-27", title: "BrowserStack App Live - Test Applications with Specific Timezones", youtubeId: "https://youtu.be/oqdMDSQKKAY", duration: "2:45",
+        id: "applive-27", title: "BrowserStack App Live - Test Applications with Specific Timezones", youtubeId: "https://youtu.be/oqdMDSQKKAY", duration: "2:45", androidAppLiveUrl: true,
         description: "Learn how to simulate different device timezones to validate time-sensitive features and localized content in your mobile applications.",
         docs: [{label:"Localization Testing",url:"https://www.browserstack.com/docs/app-live/location-testing/localization-testing"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
       {
-        id: "applive-28", title: "BrowserStack App Live - Test ADB commands", youtubeId: "https://youtu.be/TWwIOtvy5z8", duration: "2:31",
+        id: "applive-28", title: "BrowserStack App Live - Test ADB commands", youtubeId: "https://youtu.be/TWwIOtvy5z8", duration: "2:31", androidAppLiveUrl: true,
         description: "Learn how to execute custom ADB commands on remote Android devices to troubleshoot and control your app testing environment.",
         docs: [{label:"ADB Commands",url:"https://www.browserstack.com/docs/app-live/adb-commands"}], links: [{ label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
       },
