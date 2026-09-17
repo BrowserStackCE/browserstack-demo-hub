@@ -1125,6 +1125,33 @@ header.hero p { color: var(--muted); margin-top: 16px; font-size: 1.15rem; max-w
   from { opacity: 0; transform: translateY(12px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+/* Shine sweep across the panel */
+.live-cta-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255,255,255,0.18) 44%,
+    rgba(255,255,255,0.34) 50%,
+    rgba(255,255,255,0.18) 56%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  background-position: -100% 0;
+  animation: live-cta-shine 3.2s ease-in-out 0.9s infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+@keyframes live-cta-shine {
+  0%   { background-position: -100% 0; opacity: 0; }
+  8%   { opacity: 1; }
+  55%  { background-position: 200% 0; opacity: 1; }
+  65%  { opacity: 0; }
+  100% { background-position: 200% 0; opacity: 0; }
+}
 .live-cta-glow {
   position: absolute;
   inset: 0;
