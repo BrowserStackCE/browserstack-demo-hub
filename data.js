@@ -1120,4 +1120,19 @@ const PRODUCTS = [
     ],
   },
 
+  {
+    id: "requestly",
+    name: "Requestly",
+    tagline: "AI-Powered Load Testing for web apps",
+    icon: "",
+    iconSvg: "icons/icon-17.svg",
+    videos: [
+      {
+        id: "requestly-1", title: "Introducing the Requestly API Client", youtubeId: "https://youtu.be/v4mKIrakRxM?si=Osgm0m5IIg5MvmNq", duration: "05:43",
+        description: "Meet Discover the all-new Requestly API Client.",
+        docs: [{ label: "Learn more about Requestly", url: "https://www.requestly.com" }], links: [{ label: "Check Requestly Docs here", url: "https://docs.requestly.com/api-client/overview" }, { label: "Contact BrowserStack Support", url: "https://www.browserstack.com/contact?ref=helpdesk-bottom-contact-us-cta" }]
+      },
+    ],
+  },
+
 ];
