@@ -1563,7 +1563,7 @@ var AppLiveModal = (function () {
         return;
       }
       if (err) err.style.display = 'none';
-      var uploadUrl = 'https://github.com/BrowserStackCE/browserstack-demo-hub/releases/download/2.9.12/NexusDemo-v2.9.12.apk';
+      var uploadUrl = 'https://github.com/BrowserStackCE/browserstack-demo-hub/releases/download/2.9.10/NexusDemo-v2.9.10.apk';
       // Store real command for copying; display masked version on screen
       _realCmd = 'curl -u "' + username + ':' + accesskey + '" \\\n  -X POST "https://api-cloud.browserstack.com/app-live/upload" \\\n  -F \x27data={"url": "' + uploadUrl + '"}\x27';
       var maskedCmd = 'curl -u "' + username.replace(/./g, '\u25CF') + ':' + accesskey.replace(/./g, '\u25CF') + '" \\\n  -X POST "https://api-cloud.browserstack.com/app-live/upload" \\\n  -F \x27data={"url": "' + uploadUrl + '"}\x27';
