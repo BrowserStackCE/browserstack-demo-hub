@@ -1018,6 +1018,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function dismissNewProductBanner(key) {
+  try { sessionStorage.setItem(key, '1'); } catch (e) {}
+  const el = document.getElementById('npBanner');
+  if (el) el.remove();
+}
+
 function renderHome() {
   document.title = 'BrowserStack Demo Hub';
   if (typeof gtag === 'function') {
@@ -1040,7 +1046,26 @@ function renderHome() {
     </div>`
   ).join("");
   
-  app.innerHTML = `
+  // New-product notification: shown once per browser session when the newest release adds a product
+  let newProductBanner = '';
+  const latest = RELEASES[0];
+  const newProd = latest && latest.newProduct && PRODUCTS.find((x) => x.id === latest.newProduct);
+  const bannerKey = latest ? 'bs_demohub_seen_' + latest.date + '_' + latest.newProduct : '';
+  let bannerSeen = false;
+  try { bannerSeen = !!sessionStorage.getItem(bannerKey); } catch (e) {}
+  if (newProd && !bannerSeen) {
+    // Mark as seen immediately so it doesn't reappear when returning to Home in this session
+    try { sessionStorage.setItem(bannerKey, '1'); } catch (e) {}
+    newProductBanner = `
+    <div class="np-banner fade" id="npBanner" role="status">
+      <span class="np-badge">NEW</span>
+      <div class="np-text"><b>${esc(newProd.name)}</b> is now on the Demo Hub. ${esc(latest.items[0].text)}</div>
+      <a class="np-cta" onclick="dismissNewProductBanner('${esc(bannerKey)}'); location.hash='#/product/${newProd.id}'">Watch now &rarr;</a>
+      <button class="np-close" aria-label="Dismiss" onclick="dismissNewProductBanner('${esc(bannerKey)}')">&times;</button>
+    </div>`;
+  }
+
+  app.innerHTML = newProductBanner + `
     <div class="home-hero-wrap fade">
       <div class="hero-orb orb-1"></div>
       <div class="hero-orb orb-2"></div>

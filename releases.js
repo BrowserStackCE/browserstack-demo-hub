@@ -3,6 +3,7 @@
 const RELEASES = [
   {
     date: "2026-09-29",
+    newProduct: "requestly", // product id from data.js; the newest release with this set triggers the home page banner
     title: "Requestly joins the Demo Hub",
     items: [
       { type: "new", text: "Explore Requestly with a dedicated walkthrough video and product overview." },
@@ -24,6 +25,7 @@ const RELEASES = [
   },
   {
     date: "2026-08-24",
+    newProduct: "load-testing",
     title: "Load Testing is here",
     items: [
       { type: "new", text: "Learn how to stress-test your apps with new Load Testing videos and documentation." },
@@ -46,6 +48,7 @@ const RELEASES = [
   },
   {
     date: "2026-07-27",
+    newProduct: "test-companion",
     title: "Test Companion arrives",
     items: [
       { type: "new", text: "Meet Test Companion, BrowserStack's AI assistant for testing, now featured in the hub." },
