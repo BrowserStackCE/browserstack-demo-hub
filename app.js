@@ -625,6 +625,8 @@ function render() {
     renderVideo(parts[1], parts[3]);
   } else if (parts[0] === "product") {
     renderDashboard(parts[1]);
+  } else if (parts[0] === "releases") {
+    renderReleaseNotes();
   } else {
     renderHome();
   }
@@ -1060,6 +1062,20 @@ function renderHome() {
     </div>
     <h2 class="section-label fade">Choose a product</h2>
     <div class="grid fade">${cards}</div>
+    <section class="rn-home fade">
+      <div class="rn-home-head">
+        <h2 class="section-label">What's New</h2>
+        <a class="rn-home-all" onclick="location.hash='#/releases'">View all release notes &rarr;</a>
+      </div>
+      <div class="rn-home-grid">
+        ${RELEASES.slice(0, 3).map((r) => `
+          <div class="glass card rn-home-card" onclick="location.hash='#/releases'">
+            <div class="rn-date">${esc(new Date(r.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }))}</div>
+            <h3>${esc(r.title)}</h3>
+            <p>${esc(r.items[0].text)}</p>
+          </div>`).join('')}
+      </div>
+    </section>
     <footer class="site-footer fade">
       <div class="footer-inner">
         <div class="footer-brand">
@@ -1076,6 +1092,29 @@ function renderHome() {
         <p class="footer-copy">&copy; ${new Date().getFullYear()} BrowserStack. All rights reserved.</p>
       </div>
     </footer>`;
+}
+
+function renderReleaseNotes() {
+  document.title = 'Release Notes – BrowserStack Demo Hub';
+  const labels = { new: 'New', improved: 'Improved', fixed: 'Fixed' };
+  // Only major milestones are listed; see releases.js
+  const fmt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const entries = RELEASES.map((r) => `
+    <article class="rn-entry glass">
+      <div class="rn-date">${esc(fmt(r.date))}</div>
+      <h3 class="rn-title">${esc(r.title)}</h3>
+      <ul class="rn-list">
+        ${r.items.map((i) => `<li><span class="rn-tag rn-${i.type}">${labels[i.type]}</span><span>${esc(i.text)}</span></li>`).join('')}
+      </ul>
+    </article>`).join('');
+  app.innerHTML = `
+    <div class="crumbs fade">
+      <button class="back-btn" onclick="location.hash='#/'">&#8592; Back</button>
+      <a onclick="location.hash='#/'">BrowserStack Demo Hub</a><span>›</span><span>Release Notes</span>
+    </div>
+    <h1 class="rn-heading fade">What's New</h1>
+    <p class="rn-sub fade">The biggest moments in the Demo Hub's journey, from new products to features that make learning BrowserStack faster and easier.</p>
+    <div class="rn-timeline fade">${entries}</div>`;
 }
 
 function renderDashboard(pid) {
