@@ -439,7 +439,11 @@ const MiniPlayer = (() => {
               try { e.target.seekTo(startSeconds, true); e.target.playVideo(); } catch(err) {}
             }
           },
-          onStateChange: (e) => {}
+          onStateChange: (e) => {
+            if (!_videoObj || !_productObj || typeof Achievements === 'undefined') return;
+            if (e.data === YT.PlayerState.PLAYING) Achievements.recordStart(_productObj.id, _videoObj.id);
+            if (e.data === YT.PlayerState.ENDED) Achievements.recordComplete(_productObj.id, _videoObj.id);
+          }
         }
       });
     });
@@ -552,6 +556,10 @@ function setupAutoAdvance(videoObj, productObj, nextHash, resumeTime) {
           }
         },
         onStateChange: (e) => {
+          if (typeof Achievements !== 'undefined') {
+            if (e.data === YT.PlayerState.PLAYING) Achievements.recordStart(productObj.id, videoObj.id);
+            if (e.data === YT.PlayerState.ENDED) Achievements.recordComplete(productObj.id, videoObj.id);
+          }
           if (e.data === YT.PlayerState.PLAYING && !videoStarted) {
             videoStarted = true;
             if (typeof gtag === 'function') {
@@ -888,6 +896,7 @@ function renderSearchResults(query) {
           <img class="thumbimg" src="${thumbUrl(v)}" alt="${esc(v.title)}" onerror="this.classList.add('noimg')" />
           <div class="play"><span>&#9654;</span></div>
           ${v.duration ? `<span class="dur">${esc(v.duration)}</span>` : ""}
+          ${Achievements.thumbMark(v.id)}
         </div>
         <div class="meta">
           <span class="search-product-tag">${esc(p.name)}</span>
@@ -1039,6 +1048,7 @@ function renderHome() {
   const cards = PRODUCTS.map(
     (p) => `
     <div class="glass card" onclick="location.hash='#/product/${p.id}'">
+      ${Achievements.cardRing(p.id)}
       <div class="icon">${p.iconSvg ? `<img src="${p.iconSvg}" alt="${esc(p.name)}" style="width:32px;height:32px;object-fit:contain;" />` : p.icon}</div>
       <h3>${esc(p.name)}</h3>
       <p>${esc(p.tagline)}</p>
@@ -1065,7 +1075,7 @@ function renderHome() {
     </div>`;
   }
 
-  app.innerHTML = newProductBanner + `
+  app.innerHTML = newProductBanner + Achievements.introBanner() + `
     <div class="home-hero-wrap fade">
       <div class="hero-orb orb-1"></div>
       <div class="hero-orb orb-2"></div>
@@ -1163,6 +1173,7 @@ function renderDashboard(pid) {
         <img class="thumbimg" src="${thumbUrl(v)}" alt="${esc(v.title)}" onerror="this.classList.add('noimg')" />
         <div class="play"><span>&#9654;</span></div>
         ${v.duration ? `<span class="dur">${esc(v.duration)}</span>` : ""}
+        ${Achievements.thumbMark(v.id)}
       </div>
       <div class="meta">
         <h3>${esc(v.title)}</h3>
@@ -1182,6 +1193,7 @@ function renderDashboard(pid) {
       </h1>
       <h5>${esc(p.tagline)}</h5>
     </header>
+    ${Achievements.productBanner(p.id)}
     <div class="dash-search-row fade">
       <div class="dash-search-wrap">
         <span class="dash-search-icon">🔍</span>

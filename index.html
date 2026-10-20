@@ -8,21 +8,38 @@
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
+    // Resolve q_group_id: query string -> hash query string -> sessionStorage -> default.
+    // Computed outside any try/catch-around-everything so the fallback ALWAYS applies.
+    var groupId = 'independent_visit';
     try {
-      var params = new URLSearchParams(window.location.search);
-      var rawParam = params.get('q_group_id');
-      var storedId = sessionStorage.getItem('q_group_id');
-      
-      // CHANGED: The fallback cascade now lives here too!
-      var groupId = rawParam || storedId || 'independent_visit';
-
-      if (groupId && groupId.trim() !== '') {
-        sessionStorage.setItem('q_group_id', groupId.trim());
-        gtag('set', { 'q_group_id': groupId.trim() });
-      }
+      var hashQuery = location.hash.indexOf('?') > -1 ? location.hash.slice(location.hash.indexOf('?')) : '';
+      var rawParam = new URLSearchParams(window.location.search).get('q_group_id')
+        || new URLSearchParams(hashQuery).get('q_group_id');
+      var storedId = null;
+      try { storedId = sessionStorage.getItem('q_group_id'); } catch (e) { }
+      var resolved = (rawParam && rawParam.trim()) || (storedId && storedId.trim());
+      if (resolved) groupId = resolved;
+      try { sessionStorage.setItem('q_group_id', groupId); } catch (e) { }
     } catch (e) { }
+    window.__groupId = groupId;
 
-    gtag('config', 'G-CZKRW5KJRS', { send_page_view: false });
+    // Guarantee q_group_id on EVERY event, whatever the call site (inline onclick
+    // handlers included) and however early/late it fires. An explicit value wins.
+    (function () {
+      var rawGtag = gtag;
+      gtag = function (cmd, name, params) {
+        if (cmd === 'event') {
+          params = params || {};
+          if (!params.q_group_id) params.q_group_id = window.__groupId;
+          return rawGtag.call(this, cmd, name, params);
+        }
+        return rawGtag.apply(this, arguments);
+      };
+    })();
+
+    gtag('set', { 'q_group_id': groupId });
+    // Also on the config call so it is present from the very first hit
+    gtag('config', 'G-CZKRW5KJRS', { send_page_view: false, q_group_id: groupId });
   </script>
   <meta charset="UTF-8" />
   <meta name="referrer" content="unsafe-url" />
@@ -30,6 +47,8 @@
   <title>BrowserStack Demo Hub</title>
   <link rel="icon" type="image/svg+xml" href="icons/browserstack-icon.svg" />
   <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="achievements.css?v=2" />
+  <link rel="stylesheet" href="achievement-detail.css?v=1" />
 </head>
 <body>
   <nav class="navbar">
@@ -53,6 +72,8 @@
   <div class="wrap" id="app"></div>
   <script src="data.js"></script>
   <script src="releases.js"></script>
+  <script src="achievements.js?v=2"></script>
+  <script src="achievement-detail.js?v=1"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,153 @@
+/* ── Badge detail screen (Apple Fitness style) ──────────────────────────── */
+.bd-overlay {
+  --bd-a: #6f7bff; --bd-b: #2c74f6; --bd-glow: rgba(44,116,246,.55);
+  position: fixed; inset: 0; z-index: 10003; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px 20px 90px; color: #fff; text-align: center; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 20%, #1b2352 0%, #0b0e1d 60%, #05060d 100%);
+  opacity: 0; transition: opacity .35s ease;
+}
+.bd-overlay.is-master-view {
+  --bd-a: #ffd54a; --bd-b: #ff8f00; --bd-glow: rgba(255,170,0,.6);
+  background: radial-gradient(120% 90% at 50% 20%, #4a2c06 0%, #14090a 60%, #060304 100%);
+}
+.bd-overlay.is-in { opacity: 1; }
+
+.bd-close {
+  position: absolute; top: 18px; right: 22px; width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+  color: #fff; font-size: 1.6rem; line-height: 1; background: rgba(255,255,255,.12); backdrop-filter: blur(8px);
+  transition: background .2s, transform .2s;
+}
+.bd-close:hover { background: rgba(255,255,255,.24); transform: scale(1.08); }
+.bd-nav {
+  position: absolute; top: 50%; width: 46px; height: 46px; margin-top: -23px; border-radius: 50%; border: 0; cursor: pointer;
+  color: #fff; font-size: 2rem; line-height: 1; background: rgba(255,255,255,.1); transition: background .2s, transform .2s;
+}
+.bd-nav:hover { background: rgba(255,255,255,.22); }
+.bd-prev { left: 22px; } .bd-next { right: 22px; }
+.bd-prev:hover { transform: translateX(-3px); } .bd-next:hover { transform: translateX(3px); }
+
+.bd-content { width: min(520px, 100%); }
+.bd-slide { animation: bdSlideIn .55s cubic-bezier(.22,1,.36,1) both; }
+@keyframes bdSlideIn { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* Stage: glow + sparkles + medal */
+.bd-stage { position: relative; display: grid; place-items: center; height: 300px; margin-bottom: 8px; perspective: 900px; }
+.bd-glow {
+  position: absolute; width: 360px; height: 360px; border-radius: 50%;
+  background: radial-gradient(circle, var(--bd-glow) 0%, transparent 62%); filter: blur(6px);
+  animation: bdBreath 4s ease-in-out infinite;
+}
+.bd-slide.is-locked .bd-glow { opacity: .15; animation: none; }
+@keyframes bdBreath { 50% { transform: scale(1.12); opacity: .8; } }
+
+.bd-sparkles i {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: 0;
+  box-shadow: 0 0 10px 2px var(--bd-b); animation: bdTwinkle 3.2s ease-in-out infinite;
+}
+.bd-sparkles i:nth-child(1) { left: 18%; top: 22%; animation-delay: .1s; }
+.bd-sparkles i:nth-child(2) { left: 78%; top: 18%; animation-delay: .8s; }
+.bd-sparkles i:nth-child(3) { left: 12%; top: 60%; animation-delay: 1.4s; }
+.bd-sparkles i:nth-child(4) { left: 86%; top: 56%; animation-delay: 2.0s; }
+.bd-sparkles i:nth-child(5) { left: 30%; top: 84%; animation-delay: .5s; }
+.bd-sparkles i:nth-child(6) { left: 70%; top: 86%; animation-delay: 1.1s; }
+.bd-slide.is-locked .bd-sparkles { display: none; }
+@keyframes bdTwinkle { 0%,100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1.2); } }
+
+.bd-medal-wrap { position: relative; width: 220px; height: 220px; transform-style: preserve-3d; }
+.bd-medal {
+  position: relative; width: 100%; height: 100%; border-radius: 50%; transform-style: preserve-3d;
+  transition: transform .25s ease-out; animation: bdSpinIn 1.1s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes bdSpinIn { from { transform: rotateY(-540deg) scale(.4); opacity: 0; } to { transform: rotateY(0) scale(1); opacity: 1; } }
+.bd-medal-edge {
+  position: absolute; inset: -6px; border-radius: 50%;
+  background: linear-gradient(145deg, rgba(255,255,255,.55), rgba(0,0,0,.35));
+  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 70px var(--bd-glow);
+}
+.bd-medal-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 20deg, var(--bd-a), var(--bd-b), var(--bd-a), var(--bd-b), var(--bd-a));
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,.35), inset 0 -10px 24px rgba(0,0,0,.35);
+}
+.bd-medal-face {
+  position: absolute; inset: 15%; border-radius: 50%; display: grid; place-items: center; overflow: hidden;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #dfe6ff 70%);
+  box-shadow: inset 0 6px 14px rgba(0,0,0,.28), 0 0 0 4px rgba(255,255,255,.4);
+}
+.bd-medal-face img { width: 58%; height: 58%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+.bd-medal-face span { font-size: 4rem; }
+.bd-crown {
+  position: absolute; top: -26px; left: 50%; font-size: 3rem; transform: translateX(-50%) rotate(-8deg);
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,.5)); animation: bdCrown 3s ease-in-out infinite;
+}
+@keyframes bdCrown { 50% { transform: translateX(-50%) rotate(6deg) translateY(-4px); } }
+.bd-medal-shine { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; pointer-events: none; }
+.bd-medal-shine::after {
+  content: ""; position: absolute; top: -50%; left: -90%; width: 45%; height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); transform: rotate(20deg);
+  animation: bdShine 4.2s ease-in-out 1.2s infinite;
+}
+@keyframes bdShine { 0%,55% { left: -90%; } 100% { left: 170%; } }
+
+/* Locked state */
+.bd-slide.is-locked .bd-medal { animation: bdFade .6s ease both; filter: grayscale(1) brightness(.55); }
+@keyframes bdFade { from { opacity: 0; } to { opacity: 1; } }
+.bd-slide.is-locked .bd-medal-shine { display: none; }
+.bd-lock {
+  position: absolute; right: 6px; bottom: 6px; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 1.6rem; background: #1a1f36; box-shadow: 0 6px 18px rgba(0,0,0,.5); border: 2px solid rgba(255,255,255,.2);
+}
+
+/* Text */
+.bd-kicker { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.65); font-weight: 700; }
+.bd-name {
+  margin: 6px 0 8px; font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; font-weight: 800; letter-spacing: -.01em;
+  background: linear-gradient(180deg, #fff 30%, var(--bd-a)); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.bd-slide.is-locked .bd-name { background: none; color: rgba(255,255,255,.7); }
+.bd-blurb { margin: 0 auto 16px; max-width: 420px; font-size: 1.02rem; line-height: 1.5; color: rgba(255,255,255,.82); }
+.bd-earned {
+  display: inline-block; padding: 7px 16px; border-radius: 99px; font-weight: 700; font-size: .85rem; color: #0b2e1c;
+  background: linear-gradient(135deg, #5df0a8, #1fbf7a); box-shadow: 0 6px 20px rgba(31,191,122,.35);
+}
+.bd-howto {
+  display: inline-flex; flex-direction: column; gap: 3px; padding: 10px 18px; border-radius: 14px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+}
+.bd-howto b { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.bd-howto span { font-size: .95rem; font-weight: 600; }
+.bd-progress { width: min(320px, 90%); margin: 18px auto 0; }
+.bd-bar { height: 8px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; }
+.bd-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--bd-a), var(--bd-b)); transition: width .8s cubic-bezier(.22,1,.36,1); }
+.bd-bar-fill.is-full { background: linear-gradient(90deg, #ffd54a, #ff8f00); }
+.bd-progress small { display: block; margin-top: 8px; font-size: .78rem; color: rgba(255,255,255,.6); }
+
+/* Footer: dots + share */
+.bd-footer { position: absolute; left: 0; right: 0; bottom: 26px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.bd-dots { display: flex; gap: 8px; }
+.bd-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.3); cursor: pointer; transition: all .25s; }
+.bd-dot.is-on { width: 24px; border-radius: 99px; background: #fff; }
+.bd-share {
+  border: 0; border-radius: 99px; padding: 9px 22px; font-weight: 700; font-size: .85rem; cursor: pointer;
+  color: #10163a; background: #fff; transition: transform .2s, box-shadow .2s;
+}
+.bd-share:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(255,255,255,.25); }
+.bd-share:disabled { opacity: .7; cursor: progress; transform: none; }
+.bd-share-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.bd-share-row .bd-copy { color: #fff; background: rgba(255,255,255,.14); }
+
+/* Trophy-case medals are now clickable */
+.ach-pick { display: inline-flex; cursor: pointer; border-radius: 50%; transition: transform .2s; }
+.ach-pick:hover { transform: scale(1.12); }
+.ach-pick:focus-visible { outline: 2px solid #2c74f6; outline-offset: 3px; }
+
+@media (max-width: 640px) {
+  .bd-nav { display: none; }
+  .bd-stage { height: 260px; }
+  .bd-medal-wrap { width: 190px; height: 190px; }
+  .bd-glow { width: 300px; height: 300px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bd-slide, .bd-medal, .bd-glow, .bd-sparkles i, .bd-crown, .bd-medal-shine::after { animation: none; }
+  .bd-sparkles i { opacity: .8; }
+}

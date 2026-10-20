@@ -2,6 +2,15 @@
 // Dates are taken from the git history of the repository.
 const RELEASES = [
   {
+    date: "2026-10-20",
+    title: "Earn badges as you learn",
+    items: [
+      { type: "new", text: "Unlock an Explorer badge when you start a product's videos and a Master badge when you finish them all, each with its own name, such as Request Ranger and API Alchemist, and a celebration when you do." },
+      { type: "new", text: "Tap any badge to open a full-screen view with its story, when you earned it and how to unlock the next one." },
+      { type: "new", text: "Track your progress with the new trophy case in the navigation bar, plus progress rings on every product and a Watched tag on finished videos." },
+    ],
+  },
+  {
     date: "2026-09-29",
     newProduct: "requestly", // product id from data.js; the newest release with this set triggers the home page banner
     title: "Requestly joins the Demo Hub",
