@@ -1027,6 +1027,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function dismissLogoBanner() {
+  window.__logoBannerDismissed = true; // hides it for this page load only; the view budget is unchanged
+  const el = document.getElementById('logoBanner');
+  if (el) el.remove();
+}
+
 function dismissNewProductBanner(key) {
   try { sessionStorage.setItem(key, '1'); } catch (e) {}
   const el = document.getElementById('npBanner');
@@ -1075,15 +1081,55 @@ function renderHome() {
     </div>`;
   }
 
-  app.innerHTML = newProductBanner + Achievements.introBanner() + `
+  // New-logo announcement: shown on the first LOGO_MAX_VIEWS page loads (one view per load).
+  // While it is up, the badges announcement waits and uses none of its own views; once the
+  // logo views are used up, the badges banner gets its own turns.
+  let logoBanner = '';
+  const LOGO_KEY = 'bs_demohub_logo_banner_views_v1';
+  const LOGO_MAX_VIEWS = 5;
+  let logoViews = LOGO_MAX_VIEWS;
+  try {
+    // Preview helper: open the hub with ?logobanner=1 to see the announcement again
+    if (/[?&]logobanner=1\b/.test(location.search)) localStorage.removeItem(LOGO_KEY);
+    logoViews = parseInt(localStorage.getItem(LOGO_KEY), 10) || 0;
+  } catch (e) { logoViews = LOGO_MAX_VIEWS; }
+  // Count a view once per page load; re-rendering Home on the same load adds none.
+  let showLogoBanner = false;
+  if (window.__logoBannerCounted) {
+    showLogoBanner = !window.__logoBannerDismissed;
+  } else if (logoViews < LOGO_MAX_VIEWS) {
+    window.__logoBannerCounted = true;
+    showLogoBanner = true;
+    try { localStorage.setItem(LOGO_KEY, String(logoViews + 1)); } catch (e) {}
+  }
+  if (showLogoBanner) {
+    logoBanner = `
+    <div class="logo-banner fade" id="logoBanner" role="status">
+      <div class="logo-banner-mark" aria-hidden="true">
+        <img src="icons/browserstack-mark.svg" alt="" />
+      </div>
+      <div class="logo-banner-text">
+        <span class="np-badge">NEW</span>
+        <b>Meet the new BrowserStack logo 💙</b>
+        <br>
+        The connected shapes are our products working together, and the open center leaves room for what comes next. <br>
+        Thank you to every tester, developer, customer, and partner who got us here, and to the team that built it with them.
+      </div>
+      <a class="np-cta" href="https://www.browserstack.com/blog/a-new-look-for-the-next-era-of-browserstack/?utm_source=linkedin&amp;utm_medium=organicsocial&amp;utm_platform=&amp;utm_content=blog&amp;utm_campaign=&amp;utm_campaigncode=&amp;utm_term=new-logo-launch" target="_blank" rel="noopener" onclick="dismissLogoBanner()">Read the story &rarr;</a>
+      <button class="np-close" aria-label="Dismiss" onclick="dismissLogoBanner()">&times;</button>
+    </div>`;
+  }
+
+  // While the logo banner is counted for this page load (even once dismissed), hold back the badges banner
+  app.innerHTML = newProductBanner + logoBanner + (window.__logoBannerCounted ? '' : Achievements.introBanner()) + `
     <div class="home-hero-wrap fade">
       <div class="hero-orb orb-1"></div>
       <div class="hero-orb orb-2"></div>
       <div class="hero-orb orb-3"></div>
       <div class="hero-glass">
         <div class="hero-logo-row">
-          <img src="icons/browserstack-icon.svg" alt="BrowserStack" class="hero-logo" />
-          <span class="hero-brand">BrowserStack</span>
+          <img src="icons/browserstack-logo.svg" alt="BrowserStack" class="hero-logo logo-light" />
+          <img src="icons/browserstack-logo-dark.svg" alt="" aria-hidden="true" class="hero-logo logo-dark" />
         </div>
         <h1 class="hero-title">Welcome to the <span class="hero-grad">Demo Hub</span></h1>
         <p class="hero-sub">Explore, Learn, Launch</p>
@@ -1114,8 +1160,9 @@ function renderHome() {
     <footer class="site-footer fade">
       <div class="footer-inner">
         <div class="footer-brand">
-          <img src="icons/browserstack-icon.svg" alt="BrowserStack" width="28" height="28" />
-          <span>BrowserStack Demo Hub</span>
+          <img class="logo-light" src="icons/browserstack-logo.svg" alt="BrowserStack" height="26" />
+          <img class="logo-dark" src="icons/browserstack-logo-dark.svg" alt="" aria-hidden="true" height="26" />
+          <span>Demo Hub</span>
         </div>
         <p class="footer-desc">Your one-stop destination for BrowserStack product walkthroughs, onboarding videos, and documentation.</p>
         <div class="footer-links">
@@ -1139,7 +1186,7 @@ function renderReleaseNotes() {
       <div class="rn-date">${esc(fmt(r.date))}</div>
       <h3 class="rn-title">${esc(r.title)}</h3>
       <ul class="rn-list">
-        ${r.items.map((i) => `<li><span class="rn-tag rn-${i.type}">${labels[i.type]}</span><span>${esc(i.text)}</span></li>`).join('')}
+        ${r.items.map((i) => `<li><span class="rn-tag rn-${i.type}">${labels[i.type]}</span><span class="rn-body">${esc(i.text)}${i.bullets ? `<ul class="rn-bullets">${i.bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}${i.link ? `<span class="rn-link-row"><a class="rn-link" href="${esc(i.link.url)}" target="_blank" rel="noopener">${esc(i.link.label)} &rarr;</a></span>` : ''}</span></li>`).join('')}
       </ul>
     </article>`).join('');
   app.innerHTML = `

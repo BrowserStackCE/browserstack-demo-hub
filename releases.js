@@ -2,6 +2,24 @@
 // Dates are taken from the git history of the repository.
 const RELEASES = [
   {
+    date: "2026-11-03",
+    title: "Meet the new BrowserStack logo",
+    items: [
+      {
+        type: "new",
+        text: "The Demo Hub now wears the new BrowserStack logo.",
+        bullets: [
+          "Fifteen years ago, we built BrowserStack to make browser testing easier.",
+          "Today, 50,000+ teams run over a billion tests a year with us, across real devices, test management, accessibility, load testing and more.",
+          "Our logo still looked like a browser. It was time it caught up.",
+          "The connected shapes are our products working together, and the open center leaves room for what comes next.",
+          "Thank you to every tester, developer, customer and partner who got us here.",
+        ],
+        link: { label: "Read the full story", url: "https://www.browserstack.com/blog/a-new-look-for-the-next-era-of-browserstack/?utm_source=linkedin&utm_medium=organicsocial&utm_platform=&utm_content=blog&utm_campaign=&utm_campaigncode=&utm_term=new-logo-launch" },
+      },
+    ],
+  },
+  {
     date: "2026-10-20",
     title: "Earn badges as you learn",
     items: [

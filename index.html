@@ -45,8 +45,8 @@
   <meta name="referrer" content="unsafe-url" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BrowserStack Demo Hub</title>
-  <link rel="icon" type="image/svg+xml" href="icons/browserstack-icon.svg" />
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="icon" type="image/svg+xml" href="icons/browserstack-mark.svg" />
+  <link rel="stylesheet" href="styles.css?v=9" />
   <link rel="stylesheet" href="achievements.css?v=2" />
   <link rel="stylesheet" href="achievement-detail.css?v=1" />
 </head>
@@ -54,9 +54,10 @@
   <nav class="navbar">
     <div class="brand" onclick="location.hash='#/'">
       <div class="logo">
-        <img src="icons/browserstack-icon.svg" alt="BrowserStack" width="28" height="28" />
+        <img class="logo-light" src="icons/browserstack-logo.svg" alt="BrowserStack" height="26" />
+        <img class="logo-dark" src="icons/browserstack-logo-dark.svg" alt="" aria-hidden="true" height="26" />
       </div>
-      <b>BrowserStack Demo Hub</b>
+      <b>Demo Hub</b>
     </div>
     <div class="nav-search-wrap">
       <input type="search" id="globalSearch" class="nav-search" placeholder="Search videos (Press '/' to reach here)" autocomplete="off" aria-label="Search videos" />
@@ -71,9 +72,9 @@
   </nav>
   <div class="wrap" id="app"></div>
   <script src="data.js"></script>
-  <script src="releases.js"></script>
+  <script src="releases.js?v=4"></script>
   <script src="achievements.js?v=2"></script>
   <script src="achievement-detail.js?v=1"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
