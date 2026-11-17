@@ -1342,6 +1342,10 @@ header.hero p { color: var(--muted); margin-top: 16px; font-size: 1.15rem; max-w
 .alm-field { display: flex; flex-direction: column; gap: 5px; }
 .alm-field label { font-size: 0.82rem; font-weight: 600; color: var(--ink); }
 [data-theme="dark"] .alm-field label { color: #c8d0e8; }
+.alm-field label .alm-find-link { font-size: 0.8em; font-weight: 500; color: var(--orange); text-decoration: underline; text-underline-offset: 2px; margin-left: 4px; }
+.alm-field label .alm-find-link:hover { color: var(--orange-2); }
+[data-theme="dark"] .alm-field label .alm-find-link { color: #8fb4ff; }
+[data-theme="dark"] .alm-field label .alm-find-link:hover { color: #c3d6ff; }
 .alm-field input {
   width: 100%; padding: 10px 12px; border-radius: 10px;
   border: 1.5px solid rgba(0,0,0,0.12); background: rgba(0,0,0,0.03);

@@ -1500,11 +1500,11 @@ var AppLiveModal = (function () {
         '<div id="alm-step-1" class="alm-step-panel">',
           '<p class="alm-step-label">Step 1 &mdash; Enter your BrowserStack credentials</p>',
           '<div class="alm-field">',
-            '<label for="alm-username">Username <a href="https://www.browserstack.com/accounts/profile/details" target="_blank" rel="noopener noreferrer" style="font-size:0.8em;font-weight:400;">(Find yours)</a></label>',
+            '<label for="alm-username">Username <a class="alm-find-link" href="https://www.browserstack.com/accounts/profile/details" target="_blank" rel="noopener noreferrer">(Find yours)</a></label>',
             '<input id="alm-username" type="text" placeholder="e.g. john_doe" autocomplete="username" spellcheck="false" />',
           '</div>',
           '<div class="alm-field">',
-            '<label for="alm-accesskey">Access Key <a href="https://www.browserstack.com/accounts/profile/details" target="_blank" rel="noopener noreferrer" style="font-size:0.8em;font-weight:400;">(Find yours)</a></label>',
+            '<label for="alm-accesskey">Access Key <a class="alm-find-link" href="https://www.browserstack.com/accounts/profile/details" target="_blank" rel="noopener noreferrer">(Find yours)</a></label>',
             '<div class="alm-key-wrap">',
               '<input id="alm-accesskey" type="password" placeholder="Your access key" autocomplete="current-password" spellcheck="false" />',
               '<button type="button" class="alm-eye" aria-label="Toggle visibility" onclick="AppLiveModal.toggleKey()">',
@@ -1686,7 +1686,7 @@ var AppLiveModal = (function () {
         return;
       }
       if (err) err.style.display = 'none';
-      var uploadUrl = 'https://github.com/BrowserStackCE/browserstack-demo-hub/releases/download/2.9.10/NexusDemo-v2.9.10.apk';
+      var uploadUrl = 'https://github.com/BrowserStackCE/browserstack-demo-hub/releases/download/2.9.10/NexusDemo-videofix.apk';
       // Store real command for copying; display masked version on screen
       _realCmd = 'curl -u "' + username + ':' + accesskey + '" \\\n  -X POST "https://api-cloud.browserstack.com/app-live/upload" \\\n  -F \x27data={"url": "' + uploadUrl + '"}\x27';
       var maskedCmd = 'curl -u "' + username.replace(/./g, '\u25CF') + ':' + accesskey.replace(/./g, '\u25CF') + '" \\\n  -X POST "https://api-cloud.browserstack.com/app-live/upload" \\\n  -F \x27data={"url": "' + uploadUrl + '"}\x27';
